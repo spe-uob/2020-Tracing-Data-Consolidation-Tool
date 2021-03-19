@@ -17,7 +17,8 @@ Licensed under the MIT license (see `LICENSE.md`).
 Prerequesites: [maven](https://maven.apache.org/download.cgi), [node.js](https://nodejs.org/en/download/).
 
 1. Navigate to `com.DataConsolidation`.
-2. Run the backend via IntelliJ (you can also do this from the CLI with `mvn spring-boot:run`).
-3. Navigate to `src/main/frontend`. Run with `npm start`. If you get an error, try `npm install` and run again.
+2. Inside `src/main/resources/`, create folders named `UploadedFiles` and `ProcessedFiles` if they don't already exist.
+3. Run the backend via IntelliJ (you can also do this from the CLI with `mvn spring-boot:run`).
+4. Navigate to `src/main/frontend`. Run with `npm start`. If you get an error, try `npm install` and run again.
 
 Step 3 should open a tab in your browser, but if not you can visit [http://localhost:3000](http://localhost:3000).
