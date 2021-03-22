@@ -8,18 +8,27 @@ class Knitform extends React.Component{
 	constructor(props){
 		super(props);
 		this.state = {
-			msg: '',
 			showbar: false,
 			status: '',
 		};
 	}
 
-	Knit = () => {
+	sendKnitRequest = () => {
 		let data = new FormData();
-		data.append('action', 'Knit')
+		data.append('action', 'Knit');
+
 		axios.post(`${backendBaseUrl}/knit`, data).then(res => {
-			console.log(res.data)
-		}).catch(err => this.setState({error: err}));
+			console.log(res.data); // DEBUG
+			this.setState({showbar: true});
+		}).catch(err => {
+			console.error(err); // DEBUG
+			this.setState({status: "Failed to initiate consolidation"});
+		});
+	}
+
+	onProgressComplete = () => {
+		this.setState({status: "Successfully consolidated", showbar: false});
+		// TODO onFailure as well?
 	}
 
 	render() {
@@ -30,22 +39,15 @@ class Knitform extends React.Component{
 				<div className={styles.note}>Please note that processing may take up to 30 seconds.</div>
 				<div className={styles.buttonContainer}>
 					<button className={styles.button} onClick={() => {
-						this.setState({
-							showbar: true,
-							msg : "Knit"
-						})
-						this.Knit()
-						console.log(showbar)
+						this.sendKnitRequest();
+						console.log(showbar); // DEBUG
 					}}>Consolidate</button>
 					<a className={styles.button} href={backendBaseUrl + "/Processed.xlsx"}>Download</a>
 				</div>
-				{showbar ?
-				 <ProgressBar status={this.state.status}></ProgressBar>
-				 : null}
+				{showbar ? <ProgressBar onComplete={this.onProgressComplete}></ProgressBar> : null}
+				<h4 className={styles.statusMessage}>{this.state.status}</h4>
 			</div>
-
-
-		)
+		);
 	}
 }
 

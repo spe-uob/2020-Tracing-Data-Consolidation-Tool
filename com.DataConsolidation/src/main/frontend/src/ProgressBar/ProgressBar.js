@@ -8,13 +8,9 @@ class ProgressBar extends React.Component {
     constructor(props){
         super(props);
         this.state = {
-            percentage: 0,
-            showbar: true,
-            status: this.props.status, // TODO deal with this
+            percentage: 0
         };
         this.eventSource = new EventSource(`${backendBaseUrl}/Progress`);
-        // TODO fix this (same issue as above)
-        // this.showbar = true; //should be fed from props but somehow doesnt work
     }
 
     componentDidMount(){
@@ -22,28 +18,23 @@ class ProgressBar extends React.Component {
     }
 
     UpdatePercentage(data){
-        console.log(data/15281) // this is raw no of rows, more work
+        console.log(data/15281) // DEBUG // this is raw no of rows, more work
         this.setState({
-            percentage: data/15281 * 100,
-            showbar: true,
+            percentage: data/15281 * 100
         });
         if (data === 15281) {
-            this.setState({
-                status: "Successfully consolidated",
-                showbar: false,
-            });
+            this.props.onComplete();
             this.eventSource.close();
         }
     }
 
     render() {
         return ( // TODO get rid of h4 surrounding progress bar
-            <div>{this.state.showbar ?
+            <div>
                 <h4 className={styles.progressBar}>
                     <Filler percentage={this.state.percentage}></Filler>
                 </h4>
-                : <h4 className={styles.statusMessage}>{this.state.status}</h4>
-            }</div>
+            </div>
         );
     }
 }

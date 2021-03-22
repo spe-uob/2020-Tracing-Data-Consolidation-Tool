@@ -6,7 +6,7 @@ class UploadFile extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {file: '', msg: ''};
+		this.state = {file: '', status: ''};
 	}
 
 	onFileChange = (event) => {
@@ -17,7 +17,7 @@ class UploadFile extends React.Component {
 
 	uploadFileData = (event) => {
 		event.preventDefault();
-		this.setState({msg: ''});
+		this.setState({status: ''});
 
 		let data = new FormData();
 		data.append('file', this.state.file);
@@ -26,9 +26,9 @@ class UploadFile extends React.Component {
 			method: 'POST',
 			body: data
 		}).then(response => {
-			this.setState({msg: "File successfully uploaded"});
+			this.setState({status: "File successfully uploaded"});
 		}).catch(err => {
-			this.setState({error: err});
+			this.setState({status: "File failed to upload"});
 		});
 
 	}
@@ -40,7 +40,7 @@ class UploadFile extends React.Component {
 				<h3 className={styles.header}>Upload a File</h3>
 				<input onChange={this.onFileChange} type="file" />
 				<button className={styles.button} disabled={!this.state.file} onClick={this.uploadFileData}>Upload</button>
-				<h4 className={styles.statusMessage}>{this.state.msg}</h4>
+				<h4 className={styles.statusMessage}>{this.state.status}</h4>
 			</div>
 		)
 	}
