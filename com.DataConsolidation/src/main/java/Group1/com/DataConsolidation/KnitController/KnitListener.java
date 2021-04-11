@@ -5,14 +5,12 @@ import Group1.com.DataConsolidation.DataProcessing.CPH;
 import Group1.com.DataConsolidation.DataProcessing.DataConsolidator;
 import Group1.com.DataConsolidation.DataProcessing.WorkbookParseException;
 import Group1.com.DataConsolidation.UploadHandlerController.UploadController;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
 import java.util.logging.Logger;
 
-@Slf4j
 @Service
 public class KnitListener implements ApplicationListener<KnitEvent> {
 

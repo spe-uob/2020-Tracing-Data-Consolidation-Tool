@@ -8,7 +8,7 @@ import java.util.*;
 
 public class SCOTEIDParser extends Parser {
     public SCOTEIDParser(Sheet sheet, Progress progress, CPH outbreakSource) {
-        super(sheet, progress, outbreakSource, "SCOT EID");
+        super(sheet, progress, outbreakSource, "scoteid");
     }
 
     public Pair<ArrayList<MoveRecord>, ArrayList<MoveRecord>> parse() throws WorkbookParseException {

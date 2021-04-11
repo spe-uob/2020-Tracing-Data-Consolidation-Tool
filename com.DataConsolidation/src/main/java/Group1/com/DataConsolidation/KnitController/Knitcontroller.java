@@ -4,7 +4,6 @@ package Group1.com.DataConsolidation.KnitController;
 import Group1.com.DataConsolidation.DataProcessing.DataConsolidator;
 import Group1.com.DataConsolidation.DataProcessing.WorkbookParseException;
 import Group1.com.DataConsolidation.UploadHandlerController.UploadController;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -20,7 +19,6 @@ import java.io.*;
 import java.util.logging.Logger;
 
 @RestController
-@Slf4j
 @CrossOrigin(value = "http://localhost:3000")
 public class Knitcontroller {
     private static final Logger logger = Logger.getLogger(Knitcontroller.class.getName());

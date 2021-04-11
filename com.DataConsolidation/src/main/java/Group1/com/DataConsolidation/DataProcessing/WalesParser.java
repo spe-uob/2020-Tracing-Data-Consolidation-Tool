@@ -8,7 +8,7 @@ import java.util.*;
 public class WalesParser extends Parser{
 
      public WalesParser(Sheet sheet, Progress progress, CPH outbreakSource) {
-         super(sheet, progress, outbreakSource, "Wales");
+         super(sheet, progress, outbreakSource, "wales");
      }
 
      public Pair<ArrayList<MoveRecord>, ArrayList<MoveRecord>> parse() throws WorkbookParseException {

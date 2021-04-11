@@ -10,7 +10,7 @@ import java.util.*;
 
 public class ARAMSParser extends Parser {
     public ARAMSParser(Sheet sheet, Progress progress, CPH outbreakSource) {
-        super(sheet, progress, outbreakSource, "ARAMS");
+        super(sheet, progress, outbreakSource, "arams");
     }
 
     public Pair<ArrayList<MoveRecord>, ArrayList<MoveRecord>> parse() throws WorkbookParseException {

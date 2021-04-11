@@ -12,18 +12,22 @@ import org.junit.jupiter.api.Test;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DataProcessingTests{
 
-    private CPH outbreakSource = new CPH("08/548/4000");
+    private final CPH outbreakSource = new CPH("08/548/4000");
 
     XSSFWorkbook loadExcelFile(String path) {
         InputStream data = Thread.currentThread()
                 .getContextClassLoader()
                 .getResourceAsStream(path);
-        return assertDoesNotThrow(() -> new XSSFWorkbook(data), "could not open " + path);
+        return assertDoesNotThrow(() -> {
+            assert data != null;
+            return new XSSFWorkbook(data);
+        }, "could not open " + path);
     }
 
     Progress dummyProgress() {
@@ -41,297 +45,145 @@ public class DataProcessingTests{
 
         // TODO: Test workbook with no data
         // TODO: Test workbook with some sheets missing
+    }
 
+    void testWorksheet(String prefix, String[] headingNames, Function<Sheet, Parser> createParser) {
+        // Should reject workbook with no rows
+        XSSFWorkbook wbEmpty = new XSSFWorkbook();
+        Sheet sheet = wbEmpty.createSheet("test");
+        Exception e = assertThrows(WorkbookParseException.class,
+                () -> createParser.apply(sheet).parse());
+        assertEquals(prefix + ": empty spreadsheet (no headings)", e.getMessage());
+
+        // Should accept every sheet in this file
+        XSSFWorkbook wbValid = assertDoesNotThrow(() -> loadExcelFile(prefix + "_valid.xlsx"));
+        for (Sheet sh : wbValid) {
+            String testName = sh.getSheetName();
+            var p = createParser.apply(sh);
+            assertDoesNotThrow(
+                    p::parse,
+                    "didn't accept valid " + prefix + " sheet: " + testName);
+        }
+
+        // Should reject every sheet in this file
+        XSSFWorkbook wbInvalid = assertDoesNotThrow(() -> loadExcelFile("wales_invalid.xlsx"));
+        for (Sheet sh : wbInvalid) {
+            String testName = sh.getSheetName();
+            Parser p = createParser.apply(sh);
+
+            Iterator<Row> rowIter = sh.rowIterator();
+            Map<String, Integer> headings = new HashMap<>();
+            Row row = rowIter.next();
+
+            // exceptValue == 0: no exception thrown
+            // exceptValue == 1: duplicate heading
+            // exceptValue == 2: missing column
+            var exceptValue = 0;
+
+            //check duplicate heading
+            String valueName = "";
+            for (Cell cell : row) {
+                if (!cell.getCellType().equals(CellType.STRING)) {
+                    continue;
+                }
+                for (String name : headingNames) {
+                    String value = cell.getStringCellValue();
+                    if (value.compareToIgnoreCase(name) == 0) {
+                        Integer oldIndex = headings.putIfAbsent(value, cell.getColumnIndex());
+                        if (!Objects.isNull(oldIndex)) {
+                            valueName = value;
+                            exceptValue = 1;
+                        }
+                    }
+
+                }
+            }
+
+            ArrayList<String> missing = new ArrayList<>();
+            if(exceptValue == 0) {
+                if (headings.size() != headingNames.length) {
+                    // Find which headings were missing from the sheet
+                    ArrayList<String> missingHeadings = new ArrayList<>();
+                    for (String heading : headingNames) {
+                        if (!headings.containsKey(heading)) {
+                            missingHeadings.add(heading);
+                            exceptValue = 2;
+                        }
+                    }
+                    missing = missingHeadings;
+                }
+            }
+
+            String expect1 = String.format("%s: duplicate heading '%s'", prefix, valueName);
+            String expect2 = String.format("%s: didn't find all headings - missing %s",
+                    prefix, String.join(", ", missing));
+
+            e = assertThrows(WorkbookParseException.class,
+                    p::parse,
+                    "didn't reject invalid " + prefix + " sheet: " + testName);
+            System.out.println(e.getMessage());
+            if(exceptValue == 1)
+                assertEquals(expect1, e.getMessage());
+            else if(exceptValue == 2)
+                assertEquals(expect2, e.getMessage());
+        }
     }
 
     @Test
     void walesParsing() {
-        // Should reject workbook with no rows
-        XSSFWorkbook wb1 = new XSSFWorkbook();
-        Sheet sheet = wb1.createSheet("test");
-        Exception e = assertThrows(WorkbookParseException.class,
-                () -> new WalesParser(sheet, dummyProgress(), outbreakSource).parse());
-        assertEquals("Wales: empty spreadsheet (no headings)", e.getMessage());
-
-        // Should reject every sheet in this file
-        XSSFWorkbook wb2 = assertDoesNotThrow(() -> loadExcelFile("wales_invalid.xlsx"));
-        for (Sheet sh : wb2) {
-            String testName = sh.getSheetName();
-            WalesParser p = new WalesParser(sh, dummyProgress(), outbreakSource);
-
-            Iterator<Row> rowIter = sh.rowIterator();
-            String[] headingNames = {
-                    "Ref",
-                    "Count",
-                    "Species",
-                    "Lot",
-                    "Date",
-                    "From CPH",
-                    "To CPH",
-                    "Created By",
-            };
-
-            Map<String, Integer> headings = new HashMap<>();
-            Row row = rowIter.next();
-
-            //excptValue == 0: no exception thrown
-            //excptValue == 1: duplicate heading
-            //excptValue == 2: missing column
-            var excptValue = 0;
-
-            //check duplicate heading
-            String valueName = "";
-            for (Cell cell : row) {
-                if (!cell.getCellType().equals(CellType.STRING)) {
-                    continue;
-                }
-                for (String name : headingNames) {
-                    String value = cell.getStringCellValue();
-                    if (value.compareToIgnoreCase(name) == 0) {
-                        Integer oldIndex = headings.putIfAbsent(value, cell.getColumnIndex());
-                        if (!Objects.isNull(oldIndex)) {
-                            valueName = value;
-                            excptValue = 1;
-                        }
-                    }
-
-                }
-            }
-
-            ArrayList<String> missing = new ArrayList<>();
-            if(excptValue == 0){
-                if (headings.size() != headingNames.length) {
-                    // Find which headings were missing from the sheet
-                    ArrayList<String> missingHeadings = new ArrayList<>();
-                    for (String heading : headingNames) {
-                        if (!headings.containsKey(heading)) {
-                            missingHeadings.add(heading);
-                            excptValue = 2;
-                        }
-                    }
-                    missing = missingHeadings;
-                }
-            }
-
-            String expect1 = String.format("Wales: duplicate heading '%s'",valueName);
-            String expect2 = String.format("Wales: didn't find all headings - missing "+ String.join(", ", missing));
-
-            e = assertThrows(WorkbookParseException.class,
-                    () -> p.parse(),
-                    "didn't reject invalid wales sheet: " + testName);
-            System.out.println(e.getMessage());
-            if(excptValue == 1)
-                assertEquals(expect1, e.getMessage());
-            else if(excptValue == 2)
-                assertEquals(expect2, e.getMessage());
-        }
-
-        // Should accept every sheet in this file
-        XSSFWorkbook wb3 = assertDoesNotThrow(() -> loadExcelFile("wales_valid.xlsx"));
-        for (Sheet sh : wb3) {
-            String testName = sh.getSheetName();
-            WalesParser p = new WalesParser(sh, dummyProgress(), outbreakSource);
-            assertDoesNotThrow(
-                    () -> p.parse(),
-                    "didn't accept valid wales sheet: " + testName);
-        }
+        String[] headingNames = {
+                "Ref",
+                "Count",
+                "Species",
+                "Lot",
+                "Date",
+                "From CPH",
+                "To CPH",
+                "Created By",
+        };
+        testWorksheet("wales", headingNames, sh -> new WalesParser(sh, dummyProgress(), outbreakSource));
     }
 
     @Test
     void aramsParsing(){
-        // Should reject workbook with no rows
-        XSSFWorkbook wb1 = new XSSFWorkbook();
-        Sheet sheet = wb1.createSheet("test");
-        Exception e = assertThrows(WorkbookParseException.class,
-                () -> new ARAMSParser(sheet, dummyProgress(), outbreakSource).parse());
-        assertEquals("ARAMS: empty spreadsheet (no headings)", e.getMessage());
-
-        // Should reject every sheet in this file
-        XSSFWorkbook wb2 = assertDoesNotThrow(() -> loadExcelFile("arams_invalid.xlsx"));
-        for (Sheet sh : wb2) {
-            String testName = sh.getSheetName();
-            ARAMSParser p = new ARAMSParser(sh, dummyProgress(), outbreakSource);
-
-            Iterator<Row> rowIter = sh.rowIterator();
-            String[] headingNames = {
-                    "Movement ID",
-                    "From Premises",
-                    "From Activity",
-                    "To Premises",
-                    "To Activity",
-                    "Departure Date",
-                    "Arrival Date",
-                    "Recorded Date",
-                    "Status",
-                    "Move Method",
-                    "Move Direction",
-                    "Species",
-                    "Animal No",
-                    "Herd Mark",
-                    "Animal Count",
-                    "Animal Description",
-                    "Dept Country",
-                    "Dest Country"
-            };
-
-            Map<String, Integer> headings = new HashMap<>();
-            Row row = rowIter.next();
-
-            //excptValue == 0: no exception thrown
-            //excptValue == 1: duplicate heading
-            //excptValue == 2: missing column
-            var excptValue = 0;
-
-            //check duplicate heading
-            String valueName = "";
-            for (Cell cell : row) {
-                if (!cell.getCellType().equals(CellType.STRING)) {
-                    continue;
-                }
-                for (String name : headingNames) {
-                    String value = cell.getStringCellValue();
-                    if (value.compareToIgnoreCase(name) == 0) {
-                        Integer oldIndex = headings.putIfAbsent(value, cell.getColumnIndex());
-                        if (!Objects.isNull(oldIndex)) {
-                            valueName = value;
-                            excptValue = 1;
-                        }
-                    }
-
-                }
-            }
-
-            ArrayList<String> missing = new ArrayList<>();
-            if(excptValue == 0){
-                if (headings.size() != headingNames.length) {
-                    // Find which headings were missing from the sheet
-                    ArrayList<String> missingHeadings = new ArrayList<>();
-                    for (String heading : headingNames) {
-                        if (!headings.containsKey(heading)) {
-                            missingHeadings.add(heading);
-                            excptValue = 2;
-                        }
-                    }
-                    missing = missingHeadings;
-                }
-            }
-
-            String expect1 = String.format("ARAMS: duplicate heading '%s'",valueName);
-            String expect2 = String.format("ARAMS: didn't find all headings - missing "+ String.join(", ", missing));
-            e = assertThrows(WorkbookParseException.class,
-                    () -> p.parse(),
-                    "didn't reject invalid arams sheet: " + testName);
-            System.out.println(e.getMessage());
-            if(excptValue == 1)
-                assertEquals(expect1, e.getMessage());
-            else if(excptValue == 2)
-                assertEquals(expect2, e.getMessage());
-        }
-
-        // Should accept every sheet in this file
-        XSSFWorkbook wb3 = assertDoesNotThrow(() -> loadExcelFile("arams_valid.xlsx"));
-        for (Sheet sh : wb3) {
-            String testName = sh.getSheetName();
-            ARAMSParser p = new ARAMSParser(sh, dummyProgress(), outbreakSource);
-            assertDoesNotThrow(
-                    () -> p.parse(),
-                    "didn't accept valid arams sheet: " + testName);
-        }
+        String[] headingNames = {
+                "Movement ID",
+                "From Premises",
+                "From Activity",
+                "To Premises",
+                "To Activity",
+                "Departure Date",
+                "Arrival Date",
+                "Recorded Date",
+                "Status",
+                "Move Method",
+                "Move Direction",
+                "Species",
+                "Animal No",
+                "Herd Mark",
+                "Animal Count",
+                "Animal Description",
+                "Dept Country",
+                "Dest Country"
+        };
+        testWorksheet("arams", headingNames, sh -> new ARAMSParser(sh, dummyProgress(), outbreakSource));
     }
 
     @Test
     void scoteidParsing() {
-        // Should reject workbook with no rows
-        XSSFWorkbook wb1 = new XSSFWorkbook();
-        Sheet sheet = wb1.createSheet("test");
-        Exception e = assertThrows(WorkbookParseException.class,
-                () -> new SCOTEIDParser(sheet, dummyProgress(), outbreakSource).parse());
-        assertEquals("SCOT EID: empty spreadsheet (no headings)", e.getMessage());
-
-        // Should reject every sheet in this file
-        XSSFWorkbook wb2 = assertDoesNotThrow(() -> loadExcelFile("scoteid_invalid.xlsx"));
-        for (Sheet sh : wb2) {
-            String testName = sh.getSheetName();
-            SCOTEIDParser p = new SCOTEIDParser(sh, dummyProgress(), outbreakSource);
-
-            Iterator<Row> rowIter = sh.rowIterator();
-            String[] headingNames = {
-                    "Unique_Ref",
-                    "Sheep",
-                    "Reads",
-                    "%",
-                    "Move",
-                    "Lot Date",
-                    "Lot",
-                    "Depart. CPH",
-                    "Read Location",
-                    "Dest. CPH"
-            };
-
-            Map<String, Integer> headings = new HashMap<>();
-            Row row = rowIter.next();
-
-            //excptValue == 0: no exception thrown
-            //excptValue == 1: duplicate heading
-            //excptValue == 2: missing column
-            var excptValue = 0;
-
-            //check duplicate heading
-            String valueName = "";
-            for (Cell cell : row) {
-                if (!cell.getCellType().equals(CellType.STRING)) {
-                    continue;
-                }
-                for (String name : headingNames) {
-                    String value = cell.getStringCellValue();
-                    if (value.compareToIgnoreCase(name) == 0) {
-                        Integer oldIndex = headings.putIfAbsent(value, cell.getColumnIndex());
-                        if (!Objects.isNull(oldIndex)) {
-                            valueName = value;
-                            excptValue = 1;
-                        }
-                    }
-
-                }
-            }
-
-            ArrayList<String> missing = new ArrayList<>();
-            if(excptValue == 0){
-                if (headings.size() != headingNames.length) {
-                    // Find which headings were missing from the sheet
-                    ArrayList<String> missingHeadings = new ArrayList<>();
-                    for (String heading : headingNames) {
-                        if (!headings.containsKey(heading)) {
-                            missingHeadings.add(heading);
-                            excptValue = 2;
-                        }
-                    }
-                    missing = missingHeadings;
-                }
-            }
-
-            String expect1 = String.format("SCOT EID: duplicate heading '%s'",valueName);
-            String expect2 = String.format("SCOT EID: didn't find all headings - missing "+ String.join(", ", missing));
-
-            e = assertThrows(WorkbookParseException.class,
-                    () -> p.parse(),
-                    "didn't reject invalid scot eid sheet: " + testName);
-            System.out.println(e.getMessage());
-            if(excptValue == 1)
-                assertEquals(expect1, e.getMessage());
-            else if(excptValue == 2)
-                assertEquals(expect2, e.getMessage());
-        }
-
-        // Should accept every sheet in this file
-        XSSFWorkbook wb3 = assertDoesNotThrow(() -> loadExcelFile("scoteid_valid.xlsx"));
-        for (Sheet sh : wb3) {
-            String testName = sh.getSheetName();
-            SCOTEIDParser p = new SCOTEIDParser(sh, dummyProgress(), outbreakSource);
-            assertDoesNotThrow(
-                    () -> p.parse(),
-                    "didn't accept valid scot eid sheet: " + testName);
-        }
+        String[] headingNames = {
+                "Unique_Ref",
+                "Sheep",
+                "Reads",
+                "%",
+                "Move",
+                "Lot Date",
+                "Lot",
+                "Depart. CPH",
+                "Read Location",
+                "Dest. CPH"
+        };
+        testWorksheet("scoteid", headingNames, sh -> new SCOTEIDParser(sh, dummyProgress(), outbreakSource));
     }
 
     @Test
