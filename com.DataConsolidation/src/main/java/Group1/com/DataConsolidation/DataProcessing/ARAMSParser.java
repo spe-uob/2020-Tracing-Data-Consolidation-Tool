@@ -39,8 +39,8 @@ public class ARAMSParser extends Parser {
 
         parseHeadings(rowIter, headingNames);
 
-        ArrayList<MoveRecord> outFrom = new ArrayList();
-        ArrayList<MoveRecord> outTo = new ArrayList();
+        ArrayList<MoveRecord> outFrom = new ArrayList<>();
+        ArrayList<MoveRecord> outTo = new ArrayList<>();
 
         MoveRecord currentMove = null;
         int bulkCount = 0;
@@ -62,7 +62,6 @@ public class ARAMSParser extends Parser {
 
                 if (currentMove != null && !currentMove.isEmpty()) {
                     currentMove.animalCount = Integer.toString(bulkCount);
-                    currentMove.originatingSheet = this.parserName;
                     if (currentMove.isFromInfected(this.outbreakSource)) {
                         outFrom.add(currentMove);
                     } else {
@@ -70,18 +69,18 @@ public class ARAMSParser extends Parser {
                     }
                 }
 
-                currentMove = new MoveRecord();
+                currentMove = new MoveRecord("arams", row.getRowNum());
                 currentMove.id = getCellData(row, "Movement ID");
                 currentMove.locationFrom = new CPH(getCellData(row, "From Premises"));
                 currentMove.locationTo = new CPH(getCellData(row, "To Premises"));
                 currentMove.activityFrom = getCellData(row, "From Activity");
                 currentMove.activityTo = getCellData(row, "To Activity");
-                currentMove.recordedDate = getCellData(row, "Recorded Date");
-                currentMove.status = getCellData(row, "Status");
-                currentMove.moveMethod = getCellData(row, "Move Method");
-                currentMove.moveDirection = getCellData(row, "Move Direction");
-                currentMove.species = getCellData(row, "Species");
-                currentMove.animalDescription = getCellData(row, "Animal Description");
+//                currentMove.recordedDate = getCellData(row, "Recorded Date");
+//                currentMove.status = getCellData(row, "Status");
+//                currentMove.moveMethod = getCellData(row, "Move Method");
+//                currentMove.moveDirection = getCellData(row, "Move Direction");
+//                currentMove.species = getCellData(row, "Species");
+//                currentMove.animalDescription = getCellData(row, "Animal Description");
                 currentMove.departCountry = getCellData(row, "Dept Country");
                 currentMove.arriveCountry = getCellData(row, "Dest Country");
                 currentMove.departDate = parseDate(getCellData(row, "Departure Date"));

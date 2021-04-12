@@ -187,14 +187,18 @@ public class DataProcessingTests{
     }
 
     @Test
-    @Disabled
+    //@Disabled
     void parsesTestData() {
-        XSSFWorkbook wb = assertDoesNotThrow(() -> loadExcelFile("test_data_cleaned.xlsx"));
-        for (Sheet sh : wb) {
-            System.out.println(sh.getSheetName());
+        XSSFWorkbook inWb = assertDoesNotThrow(() -> loadExcelFile("test_data_cleaned.xlsx"));
+        DataConsolidator cs = assertDoesNotThrow(() -> new DataConsolidator(inWb, dummyProgress()));
+
+        var outWb = assertDoesNotThrow(() -> cs.parse(outbreakSource));
+
+        // Check reasonable output
+        for (Sheet sh : outWb) {
+            assertTrue(sh.getSheetName().equals("Moves On") || sh.getSheetName().equals("Moves Off"));
         }
-        DataConsolidator cs = assertDoesNotThrow(() -> new DataConsolidator(wb, dummyProgress()));
-        assertDoesNotThrow(() -> cs.parse(outbreakSource).write(new FileOutputStream("/tmp/parsed_data.xlsx")));
-        // TODO: Check reasonable output
+
+        assertDoesNotThrow(() -> outWb.write(new FileOutputStream("/tmp/parsed_data.xlsx")));
     }
 }

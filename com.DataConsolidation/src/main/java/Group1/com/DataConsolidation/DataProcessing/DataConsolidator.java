@@ -1,29 +1,54 @@
 package Group1.com.DataConsolidation.DataProcessing;
 
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.sl.draw.binding.CTColor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Optional;
 
 public class DataConsolidator {
 
-    private Progress progress;
-    private final Workbook wb;
+    private final Progress progress;
+    private final Workbook inWb;
+    private final XSSFWorkbook outWb;
+    private final XSSFCellStyle headingStyle;
+    private final XSSFCellStyle evenRowStyle;
+    private final XSSFCellStyle oddRowStyle;
 
-    public DataConsolidator(Workbook wb, Progress progress) {
-        Assert.notNull(wb, "workbook was null");
-        this.wb = wb;
+    public DataConsolidator(Workbook inWb, Progress progress) {
+        Assert.notNull(inWb, "workbook was null");
+        this.inWb = inWb;
         this.progress = progress;
+
+        this.outWb = new XSSFWorkbook();
+        Font boldFont = outWb.createFont();
+        boldFont.setBold(true);
+
+        this.headingStyle = outWb.createCellStyle();
+        this.headingStyle.setFont(boldFont);
+
+        this.evenRowStyle = outWb.createCellStyle();
+        this.oddRowStyle = outWb.createCellStyle();
+
+        XSSFColor fillColor = new XSSFColor(
+                new byte[] {(byte)235, (byte)235, (byte)235},
+                new DefaultIndexedColorMap()
+        );
+        this.oddRowStyle.setFillForegroundColor(fillColor);
+        this.oddRowStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     }
 
     public XSSFWorkbook parse(CPH outbreakSource) throws WorkbookParseException {
-        if (wb.getNumberOfSheets() == 0) {
+        if (inWb.getNumberOfSheets() == 0) {
             throw new WorkbookParseException("empty workbook (no sheets)");
         }
 
@@ -31,21 +56,21 @@ public class DataConsolidator {
         ArrayList<MoveRecord> movesTo = new ArrayList<>();
         progress.reset();
 
-        Sheet arams = wb.getSheetAt(0); // TODO: Will this always correspond to ARAMS?
+        Sheet arams = inWb.getSheetAt(0); // TODO: Will this always correspond to ARAMS?
         ARAMSParser aramsParser = new ARAMSParser(arams, progress, outbreakSource);
         var aramsMoves = aramsParser.parse();
         movesFrom.addAll(aramsMoves.getFirst());
         movesTo.addAll(aramsMoves.getSecond());
 
-        Sheet scotlandFrom = wb.getSheetAt(1);
+        Sheet scotlandFrom = inWb.getSheetAt(1);
         SCOTEIDParser scoteidParserFrom = new SCOTEIDParser(scotlandFrom, progress, outbreakSource);
         movesFrom.addAll(scoteidParserFrom.parse().getFirst());
 
-        Sheet scotlandTo = wb.getSheetAt(2);
+        Sheet scotlandTo = inWb.getSheetAt(2);
         SCOTEIDParser scoteidParserTo = new SCOTEIDParser(scotlandTo, progress, outbreakSource);
         movesTo.addAll(scoteidParserTo.parse().getFirst());
 
-        Sheet wales = wb.getSheetAt(3);
+        Sheet wales = inWb.getSheetAt(3);
         WalesParser walesParser = new WalesParser(wales, progress, outbreakSource);
         var walesMoves = walesParser.parse();
         movesFrom.addAll(walesMoves.getFirst());
@@ -64,34 +89,83 @@ public class DataConsolidator {
         deduplicate(movesFrom);
         deduplicate(movesTo);
 
-        XSSFWorkbook wb = new XSSFWorkbook();
-        Sheet sheetFrom = wb.createSheet("From Infected");
-        Sheet sheetTo = wb.createSheet("To Infected");
-        createResultSheet(sheetFrom, movesFrom);
-        createResultSheet(sheetTo, movesTo);
-        return wb;
+        Sheet sheetFrom = outWb.createSheet("Moves Off");
+        Sheet sheetTo = outWb.createSheet("Moves On");
+        createResultSheet(sheetFrom, movesFrom, false);
+        createResultSheet(sheetTo, movesTo, true);
+        return outWb;
     }
 
-    private void createResultSheet(Sheet sh, ArrayList<MoveRecord> moves) throws WorkbookParseException {
+    private ArrayList<ColumnInfo> getOutputColumns(boolean movesOn) throws WorkbookParseException {
+        var columnOrder = new ArrayList<ColumnInfo>();
+
+        var from = new ColumnInfo("locationFrom", "Location From", 1500);
+        var to = new ColumnInfo("locationTo", "Location To", 1500);
+        if (movesOn) {
+            columnOrder.add(from);
+        } else {
+            columnOrder.add(to);
+        }
+
+        columnOrder.add(new ColumnInfo("departDate", "Depart Date", 1500));
+        columnOrder.add(new ColumnInfo("arriveDate", "Arrive Date", 1500));
+        columnOrder.add(new ColumnInfo("id", "Move ID", 1500));
+
+        if (movesOn) {
+            columnOrder.add(new ColumnInfo("activityFrom", "Activity From", 3000));
+        } else {
+            columnOrder.add(new ColumnInfo("activityTo", "Activity To", 3000));
+        }
+
+        columnOrder.add(new ColumnInfo("animalCount", "Animal Count", 1500));
+        columnOrder.add(new ColumnInfo("departCountry", "Departure Country", 2000));
+        columnOrder.add(new ColumnInfo("arriveCountry", "Arrival Country", 2000));
+        columnOrder.add(new ColumnInfo("originatingSheet", "Originating Sheet", 2500));
+        return columnOrder;
+    }
+
+    private void createResultSheet(Sheet sh, ArrayList<MoveRecord> moves, boolean movesOn)
+            throws WorkbookParseException {
+        var outputColumns = getOutputColumns(movesOn);
+
         // Print the headings
-        Field[] fieldList = MoveRecord.class.getDeclaredFields();
         Row headingsRow = sh.createRow(0);
-        for (int i = 0; i < fieldList.length; i++) {
-            // TODO: We should use more user-friendly field names in future
-            headingsRow.createCell(i).setCellValue(fieldList[i].getName());
+        outputRow(outputColumns, headingsRow, Optional.empty());
+
+        // Widen the columns to fit the headings
+        // We could use autoSizeColumns here, but it is unacceptably slow on large sheets
+        for (int i = 0; i < outputColumns.size(); i++) {
+            sh.setColumnWidth(i, sh.getColumnWidth(i) + outputColumns.get(i).extraWidth);
         }
 
         // Print the MoveRecords
         int rowIndex = 1;
         for (MoveRecord m : moves) {
             Row r = sh.createRow(rowIndex);
-
-            for (int colIndex = 0; colIndex < fieldList.length; colIndex++) {
-                String cellValue = m.fieldValue(fieldList[colIndex]);
-                r.createCell(colIndex).setCellValue(cellValue);
-            }
-
+            outputRow(outputColumns, r, Optional.of(m));
             rowIndex += 1;
+        }
+    }
+
+    private void outputRow(ArrayList<ColumnInfo> columns, Row row, Optional<MoveRecord> move)
+            throws WorkbookParseException {
+        Field[] fieldList = MoveRecord.class.getDeclaredFields();
+
+        if (move.isEmpty()) {
+            for (int i = 0; i < columns.size(); i++) {
+                var cell = row.createCell(i);
+                cell.setCellStyle(this.headingStyle);
+                cell.setCellValue(columns.get(i).friendlyName);
+            }
+        } else {
+            for (int i = 0; i < columns.size(); i++) {
+                var style = row.getRowNum() % 2 == 0 ? evenRowStyle : oddRowStyle;
+                String cellValue = move.get().fieldValue(columns.get(i).field);
+
+                var cell = row.createCell(i);
+                cell.setCellStyle(style);
+                cell.setCellValue(cellValue);
+            }
         }
     }
 

@@ -27,28 +27,27 @@ public class WalesParser extends Parser{
 
          parseHeadings(rowIter, headingNames);
 
-         ArrayList<MoveRecord> outFrom = new ArrayList();
-         ArrayList<MoveRecord> outTo = new ArrayList();
+         ArrayList<MoveRecord> outFrom = new ArrayList<>();
+         ArrayList<MoveRecord> outTo = new ArrayList<>();
 
          while (rowIter.hasNext()) {
              Row row = rowIter.next();
              progress.incrementRowsProcessed();
 
-             MoveRecord move = new MoveRecord();
+             MoveRecord move = new MoveRecord("wales", row.getRowNum());
              move.id = getCellData(row, "Ref");
              move.animalCount = getCellData(row, "Count");
-             move.species = getCellData(row, "Species");
-             move.lotID = getCellData(row, "Lot");
+//             move.species = getCellData(row, "Species");
+//             move.lotID = getCellData(row, "Lot");
              move.locationFrom = new CPH(getCellData(row, "From CPH"));
              move.locationTo = new CPH(getCellData(row, "To CPH"));
-             move.createdBy = getCellData(row, "Created By");
+//             move.createdBy = getCellData(row, "Created By");
              move.departCountry = move.locationFrom.getCountry();
              move.arriveCountry = move.locationTo.getCountry();
              move.departDate = parseDate(getCellData(row, "Date"));
              move.arriveDate = move.departDate;
 
              if (!move.isEmpty()) {
-                 move.originatingSheet = this.parserName;
                  if (move.isFromInfected(this.outbreakSource)) {
                      outFrom.add(move);
                  } else {

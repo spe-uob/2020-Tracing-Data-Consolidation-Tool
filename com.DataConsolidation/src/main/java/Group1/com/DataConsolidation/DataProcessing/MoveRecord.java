@@ -9,20 +9,12 @@ public class MoveRecord {
     public String id;
     public String activityFrom;
     public String activityTo;
-    public String recordedDate;
-    public String status;
-    public String moveMethod;
-    public String moveDirection;
-    public String species;
+//    public String moveMethod;
     public String animalCount;
-    public String animalDescription;
-    public String reads;
-    public String percentage;
     public String moveMove;
-    public String lotDate;
-    public String lotID;
-    public String readLocation;
-    public String createdBy;
+//    public String lotDate;
+//    public String lotID;
+//    public String readLocation;
     public String departCountry;
     public String arriveCountry;
     public String originatingSheet;
@@ -31,13 +23,21 @@ public class MoveRecord {
     public Date departDate;
     public Date arriveDate;
 
-    public MoveRecord() {}
+    public MoveRecord(String sheetPrefix, int rowId) {
+        this.originatingSheet = String.format("%s: row %d", sheetPrefix, rowId);
+    }
 
     public boolean isEmpty() throws WorkbookParseException {
         Field[] fieldList = MoveRecord.class.getDeclaredFields();
         int numFieldsEmpty = 0;
 
         for (Field field : fieldList) {
+            // We set this in the constructor, so we always consider it 'empty'
+            if (field.getName().equals("originatingSheet")) {
+                numFieldsEmpty += 1;
+                continue;
+            }
+
             String cellValue = this.fieldValue(field);
             if (Objects.isNull(cellValue) || cellValue.equals("") || cellValue.equals(" ")) {
                 numFieldsEmpty += 1;
@@ -107,11 +107,12 @@ public class MoveRecord {
 
     // Check if the counts are equal to within ~10%
     private boolean countsApproximatelyEqual(String countA, String countB) {
+        float tolerance = 0.1f;
         try {
             int a = Integer.parseUnsignedInt(countA);
             int b = Integer.parseUnsignedInt(countB);
             float absDiff = (float)Math.abs(a - b);
-            float maxRelativeError = 0.1f * ((float)a + (float)b) / 2.0f;
+            float maxRelativeError = tolerance * ((float)a + (float)b) / 2.0f;
             return absDiff <= maxRelativeError;
         } catch (Exception e) {
             return false;
