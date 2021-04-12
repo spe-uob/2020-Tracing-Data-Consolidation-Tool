@@ -11,7 +11,7 @@ public class MoveRecord {
     public String activityTo;
 //    public String moveMethod;
     public String animalCount;
-    public String moveMove;
+//    public String moveMove;
 //    public String lotDate;
 //    public String lotID;
 //    public String readLocation;
@@ -27,7 +27,7 @@ public class MoveRecord {
         this.originatingSheet = String.format("%s: row %d", sheetPrefix, rowId);
     }
 
-    public boolean isEmpty() throws WorkbookParseException {
+    private int numEmptyFields() throws WorkbookParseException {
         Field[] fieldList = MoveRecord.class.getDeclaredFields();
         int numFieldsEmpty = 0;
 
@@ -44,7 +44,18 @@ public class MoveRecord {
             }
         }
 
-        return numFieldsEmpty == fieldList.length;
+        return numFieldsEmpty;
+    }
+
+    public boolean isEmpty() throws WorkbookParseException {
+        Field[] fieldList = MoveRecord.class.getDeclaredFields();
+        return numEmptyFields() == fieldList.length;
+    }
+
+    public boolean isMissingData() throws WorkbookParseException {
+        Field[] fieldList = MoveRecord.class.getDeclaredFields();
+        // One due to originatingSheet always being empty
+        return numEmptyFields() > 1;
     }
 
     public boolean isFromInfected(CPH outbreakSource) {

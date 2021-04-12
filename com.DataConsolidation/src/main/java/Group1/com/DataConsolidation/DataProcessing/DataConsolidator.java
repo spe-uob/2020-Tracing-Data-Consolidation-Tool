@@ -23,6 +23,7 @@ public class DataConsolidator {
     private final XSSFCellStyle headingStyle;
     private final XSSFCellStyle evenRowStyle;
     private final XSSFCellStyle oddRowStyle;
+    private final XSSFCellStyle warningRowStyle;
 
     public DataConsolidator(Workbook inWb, Progress progress) {
         Assert.notNull(inWb, "workbook was null");
@@ -38,13 +39,22 @@ public class DataConsolidator {
 
         this.evenRowStyle = outWb.createCellStyle();
         this.oddRowStyle = outWb.createCellStyle();
+        this.warningRowStyle = outWb.createCellStyle();
 
-        XSSFColor fillColor = new XSSFColor(
+        var colorMap = new DefaultIndexedColorMap();
+        XSSFColor oddFillColor = new XSSFColor(
                 new byte[] {(byte)235, (byte)235, (byte)235},
-                new DefaultIndexedColorMap()
+                colorMap
         );
-        this.oddRowStyle.setFillForegroundColor(fillColor);
+        this.oddRowStyle.setFillForegroundColor(oddFillColor);
         this.oddRowStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        XSSFColor warningFillColor = new XSSFColor(
+                new byte[] {(byte)235, (byte)186, (byte)52},
+                colorMap
+        );
+        this.warningRowStyle.setFillForegroundColor(warningFillColor);
+        this.warningRowStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     }
 
     public XSSFWorkbook parse(CPH outbreakSource) throws WorkbookParseException {
@@ -149,22 +159,28 @@ public class DataConsolidator {
 
     private void outputRow(ArrayList<ColumnInfo> columns, Row row, Optional<MoveRecord> move)
             throws WorkbookParseException {
-        Field[] fieldList = MoveRecord.class.getDeclaredFields();
-
         if (move.isEmpty()) {
+            // Print the headings row
             for (int i = 0; i < columns.size(); i++) {
                 var cell = row.createCell(i);
                 cell.setCellStyle(this.headingStyle);
                 cell.setCellValue(columns.get(i).friendlyName);
             }
         } else {
+            // Print a data row
             for (int i = 0; i < columns.size(); i++) {
-                var style = row.getRowNum() % 2 == 0 ? evenRowStyle : oddRowStyle;
                 String cellValue = move.get().fieldValue(columns.get(i).field);
 
                 var cell = row.createCell(i);
-                cell.setCellStyle(style);
                 cell.setCellValue(cellValue);
+
+                if (move.get().isMissingData()) {
+                    cell.setCellStyle(this.warningRowStyle);
+                } else if (row.getRowNum() % 2 == 0) {
+                    cell.setCellStyle(this.evenRowStyle);
+                } else {
+                    cell.setCellStyle(this.oddRowStyle);
+                }
             }
         }
     }

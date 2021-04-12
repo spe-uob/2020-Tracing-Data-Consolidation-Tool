@@ -40,7 +40,7 @@ public class SCOTEIDParser extends Parser {
             move.animalCount = getCellData(row, "Sheep");
 //            move.reads = getCellData(row, "Reads");
 //            move.percentage = getCellData(row, "%");
-            move.moveMove = getCellData(row, "Move");
+//            move.moveMove = getCellData(row, "Move");
 //            move.lotDate = getCellData(row, "Lot Date");
 //            move.lotID = getCellData(row, "Lot");
             move.locationFrom = new CPH(getCellData(row, "Depart. CPH"));
