@@ -187,7 +187,7 @@ public class DataProcessingTests{
     }
 
     @Test
-    //@Disabled
+    @Disabled
     void parsesTestData() {
         XSSFWorkbook inWb = assertDoesNotThrow(() -> loadExcelFile("test_data_cleaned.xlsx"));
         DataConsolidator cs = assertDoesNotThrow(() -> new DataConsolidator(inWb, dummyProgress()));
