@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+    frontend:
+        build: ./frontend
+        container_name: production_frontend
+        # networks:
+            # - frontend
+
+    backend:
+        build: ./com.DataConsolidation
+        container_name: production_backend
+        # volumes:
+        #   - .:/example
+        # networks:
+            # - backend
+
+    proxy:
+        image: nginx:latest
+        container_name: production_nginx
+        ports:
+            - 80:80
+        volumes:
+            - ./nginx:/etc/nginx
+        # networks:
+            # - frontend
+            # - backend
+
+# networks:
+    # frontend:
+    # backend:
