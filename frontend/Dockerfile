@@ -1,7 +1,4 @@
-FROM node:lts
-
-# TODO turn into multi-stage dockerfile to save space/memory
-RUN npm install -g serve
+FROM node:lts AS builder
 
 WORKDIR /usr/app
 
@@ -12,6 +9,15 @@ RUN npm install
 COPY . .
 
 RUN npm run build
+
+
+FROM node:lts
+
+WORKDIR /usr/local/app
+
+COPY --from=builder /usr/app/build ./build
+
+RUN npm install -g serve
 
 EXPOSE 5000
 

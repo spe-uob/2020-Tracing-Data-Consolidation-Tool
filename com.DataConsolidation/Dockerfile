@@ -12,7 +12,7 @@ FROM openjdk:11-jre-slim
 
 WORKDIR /usr/local/app
 
-COPY --from=builder /usr/app/target/*.jar /usr/local/app/backend.jar
+COPY --from=builder /usr/app/target/*.jar ./backend.jar
 
 # This is where targetFile.xlsx is stored
 RUN mkdir -p src/main/resources/UploadedFiles/
