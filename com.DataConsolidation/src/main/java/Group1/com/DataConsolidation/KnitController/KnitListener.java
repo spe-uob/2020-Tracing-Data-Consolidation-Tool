@@ -1,10 +1,6 @@
 package Group1.com.DataConsolidation.KnitController;
 
 import Group1.com.DataConsolidation.DataProcessing.Progress;
-import Group1.com.DataConsolidation.DataProcessing.CPH;
-import Group1.com.DataConsolidation.DataProcessing.DataConsolidator;
-import Group1.com.DataConsolidation.DataProcessing.WorkbookParseException;
-import Group1.com.DataConsolidation.UploadHandlerController.UploadController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;

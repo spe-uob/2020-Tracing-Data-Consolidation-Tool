@@ -1,16 +1,12 @@
 package Group1.com.DataConsolidation.DataProcessing;
 
-import org.apache.poi.sl.draw.binding.CTColor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.util.Assert;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Optional;
@@ -57,7 +53,7 @@ public class DataConsolidator {
         this.warningRowStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     }
 
-    public XSSFWorkbook parse(CPH outbreakSource) throws WorkbookParseException {
+    public XSSFWorkbook parse(Location outbreakSource) throws WorkbookParseException {
         if (inWb.getNumberOfSheets() == 0) {
             throw new WorkbookParseException("empty workbook (no sheets)");
         }
@@ -86,18 +82,20 @@ public class DataConsolidator {
         movesFrom.addAll(walesMoves.getFirst());
         movesTo.addAll(walesMoves.getSecond());
 
-        // First sort by location, then by date
+        // First sort by location, then by originating sheet, then by date
         movesFrom.sort(
-                Comparator.comparing((MoveRecord m) -> m.locationTo.number, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing((MoveRecord m) -> m.arriveDate, Comparator.nullsLast(Comparator.naturalOrder()))
+            Comparator.comparing((MoveRecord m) -> m.locationTo.number, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing((MoveRecord m) -> m.originatingSheet.split(":")[0], Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing((MoveRecord m) -> m.arriveDate, Comparator.nullsLast(Comparator.naturalOrder()))
         );
         movesTo.sort(
-                Comparator.comparing((MoveRecord m) -> m.locationFrom.number, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing((MoveRecord m) -> m.departDate, Comparator.nullsLast(Comparator.naturalOrder()))
+            Comparator.comparing((MoveRecord m) -> m.locationFrom.number, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing((MoveRecord m) -> m.originatingSheet.split(":")[0], Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing((MoveRecord m) -> m.departDate, Comparator.nullsLast(Comparator.naturalOrder()))
         );
 
-        deduplicate(movesFrom);
-        deduplicate(movesTo);
+//        deduplicate(movesFrom);
+//        deduplicate(movesTo);
 
         Sheet sheetFrom = outWb.createSheet("Moves Off");
         Sheet sheetTo = outWb.createSheet("Moves On");
@@ -139,8 +137,7 @@ public class DataConsolidator {
         var outputColumns = getOutputColumns(movesOn);
 
         // Print the headings
-        Row headingsRow = sh.createRow(0);
-        outputRow(outputColumns, headingsRow, Optional.empty());
+        outputHeadingRow(outputColumns, sh);
 
         // Widen the columns to fit the headings
         // We could use autoSizeColumns here, but it is unacceptably slow on large sheets
@@ -148,55 +145,59 @@ public class DataConsolidator {
             sh.setColumnWidth(i, sh.getColumnWidth(i) + outputColumns.get(i).extraWidth);
         }
 
+        // Set the width for the 'Animal No' column
+        sh.setColumnWidth(outputColumns.size(), sh.getColumnWidth(outputColumns.size()) + 3000);
+        // TODO: Center horizontally?
+
         // Print the MoveRecords
         int rowIndex = 1;
-        for (MoveRecord m : moves) {
-            Row r = sh.createRow(rowIndex);
-            outputRow(outputColumns, r, Optional.of(m));
-            rowIndex += 1;
+        for (int i = 0; i < moves.size(); i++) {
+            int numCreated = outputDataRow(outputColumns, sh, rowIndex, moves.get(i), i % 2 == 1);
+            rowIndex += numCreated;
         }
     }
 
-    private void outputRow(ArrayList<ColumnInfo> columns, Row row, Optional<MoveRecord> move)
+    private void outputHeadingRow(ArrayList<ColumnInfo> columns, Sheet sh) {
+        // Print the headings row
+        Row row = sh.createRow(0);
+        for (int i = 0; i < columns.size(); i++) {
+            var cell = row.createCell(i);
+            cell.setCellStyle(this.headingStyle);
+            cell.setCellValue(columns.get(i).friendlyName);
+        }
+    }
+
+    private int outputDataRow(ArrayList<ColumnInfo> columns, Sheet sh, int rowIndex, MoveRecord move, boolean evenRow)
             throws WorkbookParseException {
-        if (move.isEmpty()) {
-            // Print the headings row
-            for (int i = 0; i < columns.size(); i++) {
-                var cell = row.createCell(i);
-                cell.setCellStyle(this.headingStyle);
-                cell.setCellValue(columns.get(i).friendlyName);
-            }
-        } else {
-            // Print a data row
-            for (int i = 0; i < columns.size(); i++) {
-                String cellValue = move.get().fieldValue(columns.get(i).field);
+        // Print a data row
+        Row row = sh.createRow(rowIndex);
+        XSSFCellStyle style = evenRow ? this.evenRowStyle : this.oddRowStyle;
 
-                var cell = row.createCell(i);
-                cell.setCellValue(cellValue);
+        for (int i = 0; i < columns.size(); i++) {
+            String cellValue = move.fieldValue(columns.get(i).field);
 
-                if (move.get().isMissingData()) {
-                    cell.setCellStyle(this.warningRowStyle);
-                } else if (row.getRowNum() % 2 == 0) {
-                    cell.setCellStyle(this.evenRowStyle);
-                } else {
-                    cell.setCellStyle(this.oddRowStyle);
-                }
-            }
+            var cell = row.createCell(i);
+            cell.setCellValue(cellValue);
+            cell.setCellStyle(style);
+
+    //                if (move.get().isMissingData()) {
+    //                    cell.setCellStyle(this.warningRowStyle);
+            /*} else */
         }
-    }
 
-    // We assume, following the sorting we perform, that duplicates will be listed consecutively
-    private void deduplicate(ArrayList<MoveRecord> moves) {
-        for (int i = 1; i < moves.size(); i++) {
-            MoveComparison comparison = moves.get(i).compareTo(moves.get(i - 1));
-            if (comparison == MoveComparison.Equal) {
-                // We have a duplicate
-                // TODO: Merge the records rather than just deleting whichever one appears second
-                moves.remove(i);
-                i--;
-            } else if (comparison == MoveComparison.ApproxEqual) {
-                // TODO: Do something like highlight the rows to indicate that there was an approximate match
-            }
+        // Print all the animal IDs
+        int numRowsCreated = 1;
+        for (var animal : move.animalIDs) {
+            if (animal.isEmpty())
+                continue;
+
+            Row r = sh.createRow(rowIndex + numRowsCreated);
+            var cell = r.createCell(9);
+            cell.setCellValue(animal);
+            cell.setCellStyle(style);
+            numRowsCreated += 1;
         }
+
+        return numRowsCreated;
     }
 }

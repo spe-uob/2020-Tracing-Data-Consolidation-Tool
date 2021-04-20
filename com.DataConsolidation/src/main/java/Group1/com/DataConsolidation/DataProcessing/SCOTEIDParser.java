@@ -3,11 +3,10 @@ package Group1.com.DataConsolidation.DataProcessing;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.data.util.Pair;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class SCOTEIDParser extends Parser {
-    public SCOTEIDParser(Sheet sheet, Progress progress, CPH outbreakSource) {
+    public SCOTEIDParser(Sheet sheet, Progress progress, Location outbreakSource) {
         super(sheet, progress, outbreakSource, "scoteid");
     }
 
@@ -38,14 +37,8 @@ public class SCOTEIDParser extends Parser {
             MoveRecord move = new MoveRecord("scoteid", row.getRowNum());
             move.id = getCellData(row, "Unique_Ref");
             move.animalCount = getCellData(row, "Sheep");
-//            move.reads = getCellData(row, "Reads");
-//            move.percentage = getCellData(row, "%");
-//            move.moveMove = getCellData(row, "Move");
-//            move.lotDate = getCellData(row, "Lot Date");
-//            move.lotID = getCellData(row, "Lot");
-            move.locationFrom = new CPH(getCellData(row, "Depart. CPH"));
-//            move.readLocation = getCellData(row, "Read Location");
-            move.locationTo = new CPH(getCellData(row, "Dest. CPH"));
+            move.locationFrom = new Location(getCellData(row, "Depart. CPH"));
+            move.locationTo = new Location(getCellData(row, "Dest. CPH"));
             move.departCountry = move.locationFrom.getCountry();
             move.arriveCountry = move.locationTo.getCountry();
             var lotDate = getCellData(row, "Lot Date");

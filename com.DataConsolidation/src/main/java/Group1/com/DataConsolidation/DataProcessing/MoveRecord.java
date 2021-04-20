@@ -2,6 +2,7 @@ package Group1.com.DataConsolidation.DataProcessing;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
 
@@ -9,56 +10,62 @@ public class MoveRecord {
     public String id;
     public String activityFrom;
     public String activityTo;
-//    public String moveMethod;
     public String animalCount;
-//    public String moveMove;
-//    public String lotDate;
-//    public String lotID;
-//    public String readLocation;
     public String departCountry;
     public String arriveCountry;
     public String originatingSheet;
-    public CPH locationFrom;
-    public CPH locationTo;
+    public Location locationFrom;
+    public Location locationTo;
     public Date departDate;
     public Date arriveDate;
+    public ArrayList<String> animalIDs;
 
     public MoveRecord(String sheetPrefix, int rowId) {
-        this.originatingSheet = String.format("%s: row %d", sheetPrefix, rowId);
+        // + 1 because row 1 has ID 0
+        this.originatingSheet = String.format("%s: row %d", sheetPrefix, rowId + 1);
+        this.animalIDs = new ArrayList<>();
     }
 
-    private int numEmptyFields() throws WorkbookParseException {
+    private int numUselessFields() throws WorkbookParseException {
         Field[] fieldList = MoveRecord.class.getDeclaredFields();
-        int numFieldsEmpty = 0;
+        int count = 0;
 
         for (Field field : fieldList) {
-            // We set this in the constructor, so we always consider it 'empty'
+            // We set this in the constructor, so we always consider it 'useless'
             if (field.getName().equals("originatingSheet")) {
-                numFieldsEmpty += 1;
+                count += 1;
+                continue;
+            }
+
+            if (field.getName().equals("animalIDs")) {
+                // TODO: This messes up the warning checker
+                if (animalIDs.size() == 0) {
+                    count += 1;
+                }
+
                 continue;
             }
 
             String cellValue = this.fieldValue(field);
             if (Objects.isNull(cellValue) || cellValue.equals("") || cellValue.equals(" ")) {
-                numFieldsEmpty += 1;
+                count += 1;
             }
         }
 
-        return numFieldsEmpty;
+        return count;
     }
 
     public boolean isEmpty() throws WorkbookParseException {
         Field[] fieldList = MoveRecord.class.getDeclaredFields();
-        return numEmptyFields() == fieldList.length;
+        return numUselessFields() == fieldList.length;
     }
 
     public boolean isMissingData() throws WorkbookParseException {
-        Field[] fieldList = MoveRecord.class.getDeclaredFields();
         // One due to originatingSheet always being empty
-        return numEmptyFields() > 1;
+        return numUselessFields() > 1;
     }
 
-    public boolean isFromInfected(CPH outbreakSource) {
+    public boolean isFromInfected(Location outbreakSource) {
         if (locationFrom.number.equals(outbreakSource.number)) {
             return true;
         } else if (locationTo.number.equals(outbreakSource.number)) {
@@ -71,8 +78,8 @@ public class MoveRecord {
 
     public String fieldValue(Field field) throws WorkbookParseException {
         try {
-            if (field.getType() == CPH.class) {
-                return ((CPH)field.get(this)).number;
+            if (field.getType() == Location.class) {
+                return ((Location)field.get(this)).number;
             } else if (field.getType() == Date.class) {
                 Date d = (Date)field.get(this);
                 if (Objects.isNull(d)) {

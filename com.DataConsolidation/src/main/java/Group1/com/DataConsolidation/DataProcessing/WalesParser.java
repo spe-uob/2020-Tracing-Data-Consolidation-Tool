@@ -7,7 +7,7 @@ import java.util.*;
 
 public class WalesParser extends Parser{
 
-     public WalesParser(Sheet sheet, Progress progress, CPH outbreakSource) {
+     public WalesParser(Sheet sheet, Progress progress, Location outbreakSource) {
          super(sheet, progress, outbreakSource, "wales");
      }
 
@@ -37,11 +37,8 @@ public class WalesParser extends Parser{
              MoveRecord move = new MoveRecord("wales", row.getRowNum());
              move.id = getCellData(row, "Ref");
              move.animalCount = getCellData(row, "Count");
-//             move.species = getCellData(row, "Species");
-//             move.lotID = getCellData(row, "Lot");
-             move.locationFrom = new CPH(getCellData(row, "From CPH"));
-             move.locationTo = new CPH(getCellData(row, "To CPH"));
-//             move.createdBy = getCellData(row, "Created By");
+             move.locationFrom = new Location(getCellData(row, "From CPH"));
+             move.locationTo = new Location(getCellData(row, "To CPH"));
              move.departCountry = move.locationFrom.getCountry();
              move.arriveCountry = move.locationTo.getCountry();
              move.departDate = parseDate(getCellData(row, "Date"));

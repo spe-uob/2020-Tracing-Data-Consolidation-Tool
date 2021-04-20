@@ -1,14 +1,12 @@
 package Group1.com.DataConsolidation.KnitController;
 
-import Group1.com.DataConsolidation.DataProcessing.CPH;
+import Group1.com.DataConsolidation.DataProcessing.Location;
 import Group1.com.DataConsolidation.DataProcessing.DataConsolidator;
 import Group1.com.DataConsolidation.DataProcessing.Progress;
 import Group1.com.DataConsolidation.DataProcessing.WorkbookParseException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.util.logging.Logger;
@@ -32,7 +30,7 @@ class ParseThread implements Runnable{
                 outFile.createNewFile();
                 OutputStream outStream = new FileOutputStream(outFile);
                 Workbook wbIn = WorkbookFactory.create(inStream);
-                CPH tempOutbreakSource = new CPH("08/548/4000"); // TODO: Hook this value up to the frontend
+                Location tempOutbreakSource = new Location("08/548/4000"); // TODO: Hook this value up to the frontend
                 XSSFWorkbook wbOut = new DataConsolidator(wbIn, progress).parse(tempOutbreakSource);
                 wbOut.write(outStream);
                 logger.info("Processing done");

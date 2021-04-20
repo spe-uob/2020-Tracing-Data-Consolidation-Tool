@@ -13,10 +13,10 @@ public abstract class Parser {
     protected Map<String, Integer> headings;
     protected String parserName;
     protected SimpleDateFormat dateFormat;
-    protected CPH outbreakSource;
+    protected Location outbreakSource;
     protected Progress progress;
 
-    public Parser(Sheet sheet, Progress progress, CPH outbreakSource, String parserName) {
+    public Parser(Sheet sheet, Progress progress, Location outbreakSource, String parserName) {
         this.sheet = sheet;
         this.formatter = new DataFormatter();
         this.parserName = parserName;

@@ -1,11 +1,15 @@
 package Group1.com.DataConsolidation.DataProcessing;
 
 // Represents a single CPH number
-public class CPH {
+public class Location {
     public String number;
 
-    public CPH(String number) {
-        // TODO: Convert FSA to CPH
+    public Location(String number) {
+        if (!number.contains("/") && !number.isEmpty()) {
+            // Prepend 'SH' to FSA numbers
+            number = "SH" + number;
+        }
+
         this.number = number;
     }
 
@@ -33,7 +37,7 @@ public class CPH {
         }
     }
 
-    public boolean equals(CPH other) {
+    public boolean equals(Location other) {
         if (this == other) {
             return true;
         } else {
