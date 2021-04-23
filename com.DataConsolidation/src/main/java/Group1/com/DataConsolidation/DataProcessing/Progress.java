@@ -17,7 +17,7 @@ public class Progress {
         this.rowsProcessed = new AtomicInteger(0);
     }
 
-    void reset() {
+    public void reset() {
         rowsProcessed.set(0);
     }
 

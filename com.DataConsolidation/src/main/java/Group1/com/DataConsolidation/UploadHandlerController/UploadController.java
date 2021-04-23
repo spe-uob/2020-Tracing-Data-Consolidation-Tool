@@ -1,6 +1,8 @@
 package Group1.com.DataConsolidation.UploadHandlerController;
 
 
+import Group1.com.DataConsolidation.DataProcessing.Progress;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,17 +24,20 @@ public class UploadController {
     private static String UPLOADED_FOLDER = "src/main/resources/UploadedFiles/";
     private static final Logger logger = Logger.getLogger(UploadController.class.getName());
     private static String MessageToShow = "";
+    @Autowired
+    public Progress Progress;
     @PostMapping("/upload") // Handle Post Request sent by the React Client (save Uploaded files into resources)
     public ResponseEntity<String> uploadData(@RequestParam("file") MultipartFile file) throws Exception {
         if (file == null) {
             throw new RuntimeException("You must select the a file for uploading");
         }
+        Progress.reset();
 
         InputStream inputStream = file.getInputStream();
         byte[] buffer = new byte[inputStream.available()];
         //Path path = Paths.get(UPLOADED_FOLDER + file.getOriginalFilename());
         inputStream.read(buffer);
-        File targetFile = new File(UPLOADED_FOLDER + "targetFile.xlsx"); // All Files will be stored as xlsx ?
+        File targetFile = new File(UPLOADED_FOLDER + "targetFile.xlsx");
         try (OutputStream outStream = new FileOutputStream(targetFile)) {
             outStream.write(buffer);
         }
