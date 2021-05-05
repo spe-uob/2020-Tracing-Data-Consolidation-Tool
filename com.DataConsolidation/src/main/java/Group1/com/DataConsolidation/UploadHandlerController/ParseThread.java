@@ -1,4 +1,4 @@
-package Group1.com.DataConsolidation.KnitController;
+package Group1.com.DataConsolidation.UploadHandlerController;
 
 import Group1.com.DataConsolidation.DataProcessing.Location;
 import Group1.com.DataConsolidation.DataProcessing.DataConsolidator;
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 class ParseThread implements Runnable{
         private static String UPLOADED_FOLDER = "src/main/resources/UploadedFiles/";
-        private static final Logger logger = Logger.getLogger(Group1.com.DataConsolidation.KnitController.ParseThread.class.getName());
+        private static final Logger logger = Logger.getLogger(ParseThread.class.getName());
         Thread thread;
         private String threadname;
         private Progress progress;

@@ -42,6 +42,9 @@ public class UploadController {
             outStream.write(buffer);
         }
 
+        ParseThread parsethread = new ParseThread("parsethread", Progress);
+        parsethread.start();
+
 
         //Logging information into the console. (just for Debugging)
         String originalName = file.getOriginalFilename();
