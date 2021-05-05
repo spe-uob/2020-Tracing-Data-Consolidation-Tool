@@ -17,16 +17,18 @@ class ParseThread implements Runnable{
         Thread thread;
         private String threadname;
         private Progress progress;
+        private CurrentJob currentJob;
 
-        public ParseThread(String threadname, Progress progress) {
+        public ParseThread(String threadname, Progress progress, CurrentJob currentJob) {
             this.threadname = threadname;
             this.progress = progress;
+            this.currentJob = currentJob;
         }
 
         @Override
         public void run() {
-            try (InputStream inStream = new FileInputStream(UPLOADED_FOLDER + "targetFile.xlsx")) {
-                var outFile = new File("src/main/resources/ProcessedFiles/processed.xlsx");
+            try (InputStream inStream = new FileInputStream(UPLOADED_FOLDER + "targetFile.xlsx" + currentJob.getJobid())) {
+                var outFile = new File("src/main/resources/ProcessedFiles/processed" + currentJob.getJobid() + ".xlsx");
                 outFile.createNewFile();
                 OutputStream outStream = new FileOutputStream(outFile);
                 Workbook wbIn = WorkbookFactory.create(inStream);

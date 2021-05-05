@@ -16,6 +16,9 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 import java.util.logging.Logger;
 
 @RestController
@@ -27,22 +30,24 @@ public class UploadController {
     @Autowired
     public Progress Progress;
     @PostMapping("/upload") // Handle Post Request sent by the React Client (save Uploaded files into resources)
-    public ResponseEntity<String> uploadData(@RequestParam("file") MultipartFile file) throws Exception {
+    public CurrentJob uploadData(@RequestParam("file") MultipartFile file) throws Exception {
         if (file == null) {
             throw new RuntimeException("You must select the a file for uploading");
         }
-        Progress.reset();
+        Progress.reset(); // make progress scope Request.
+        CurrentJob currentjob = GenerateRandomJob();
 
         InputStream inputStream = file.getInputStream();
         byte[] buffer = new byte[inputStream.available()];
         //Path path = Paths.get(UPLOADED_FOLDER + file.getOriginalFilename());
         inputStream.read(buffer);
-        File targetFile = new File(UPLOADED_FOLDER + "targetFile.xlsx");
+        File targetFile = new File(UPLOADED_FOLDER + "targetFile" + currentjob.getJobid()+ ".xlsx");
         try (OutputStream outStream = new FileOutputStream(targetFile)) {
             outStream.write(buffer);
         }
 
-        ParseThread parsethread = new ParseThread("parsethread", Progress);
+
+        ParseThread parsethread = new ParseThread("parsethread", Progress, currentjob);
         parsethread.start();
 
 
@@ -58,8 +63,15 @@ public class UploadController {
         logger.info("size: " + size);
         MessageToShow = originalName + " size:" + size + " Content Type: "+ contentType;
         // Do processing with uploaded file data in Service layer
-        return new ResponseEntity<String>(originalName, HttpStatus.OK);
+        return currentjob;
     }
+
+    private CurrentJob GenerateRandomJob() throws NoSuchProviderException, NoSuchAlgorithmException {
+        SecureRandom secureRandomGenerator = SecureRandom.getInstance("SHA1PRNG", "SUN");
+        int jobid = secureRandomGenerator.nextInt();
+        return new CurrentJob(jobid);
+    }
+
     @GetMapping("/upload")
     @ResponseBody
     public String showdata(){

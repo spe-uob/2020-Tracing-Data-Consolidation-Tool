@@ -3,7 +3,9 @@ package Group1.com.DataConsolidation.DownloadController;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,15 +15,15 @@ import java.io.InputStream;
 @RestController
 @CrossOrigin("http://localhost:3000")
 public class Downloadcontroller {
-    @RequestMapping(value = "/Processed.xlsx", method = RequestMethod.GET, produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    @ResponseBody
-    public byte[] getFile () throws IOException {
-        InputStream inputStream = new FileInputStream("src/main/resources/ProcessedFiles/processed.xlsx");
+    @GetMapping(value = "/Processed.xlsx", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    public byte[] getFile (@RequestHeader("JobId") int JobId ) throws IOException {
+        InputStream inputStream = new FileInputStream("src/main/resources/ProcessedFiles/processed" + JobId + ".xlsx");
         byte[] buffer = new byte[inputStream.available()];
         inputStream.read(buffer);
-
+        File ProcessedFile =  new File("src/main/resources/ProcessedFiles/processed" + JobId + ".xlsx");
+        ProcessedFile.delete();
         return buffer;
-
     }
+
 
 }
