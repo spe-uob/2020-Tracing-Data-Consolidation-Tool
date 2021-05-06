@@ -16,7 +16,7 @@ import java.io.InputStream;
 @CrossOrigin("http://localhost:3000")
 public class Downloadcontroller {
     @GetMapping(value = "/Processed.xlsx", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public byte[] getFile (@RequestHeader("JobId") int JobId ) throws IOException {
+    public byte[] getFile (@RequestParam("JobId") int JobId ) throws IOException {
         InputStream inputStream = new FileInputStream("src/main/resources/ProcessedFiles/processed" + JobId + ".xlsx");
         byte[] buffer = new byte[inputStream.available()];
         inputStream.read(buffer);
