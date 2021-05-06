@@ -27,7 +27,7 @@ class ParseThread implements Runnable{
 
         @Override
         public void run() {
-            try (InputStream inStream = new FileInputStream(UPLOADED_FOLDER + "targetFile.xlsx" + currentJob.getJobid())) {
+            try (InputStream inStream = new FileInputStream(UPLOADED_FOLDER + "targetFile" + currentJob.getJobid() + ".xlsx")) {
                 var outFile = new File("src/main/resources/ProcessedFiles/processed" + currentJob.getJobid() + ".xlsx");
                 outFile.createNewFile();
                 OutputStream outStream = new FileOutputStream(outFile);

@@ -6,7 +6,11 @@ class UploadFile extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {file: '', status: ''};
+		this.state = {
+			file: '', 
+			status: '',
+			id: 0
+		};
 	}
 
 	onFileChange = (event) => {
@@ -25,8 +29,13 @@ class UploadFile extends React.Component {
 		fetch(`${backendBaseUrl}/upload`, {
 			method: 'POST',
 			body: data
-		}).then(response => {
-			this.setState({status: "File successfully uploaded"});
+		}).then((response) => response.json()
+		).then((jsonData)=> {
+			this.setState({
+				status:"file successfully uploaded",
+				id: jsonData.jobid
+			})
+			console.log(jsonData.jobid)
 		}).catch(err => {
 			this.setState({status: "File failed to upload"});
 		});

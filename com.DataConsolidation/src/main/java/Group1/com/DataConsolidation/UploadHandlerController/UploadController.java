@@ -29,6 +29,7 @@ public class UploadController {
     private static String MessageToShow = "";
     @Autowired
     public Progress Progress;
+    @ResponseBody
     @PostMapping("/upload") // Handle Post Request sent by the React Client (save Uploaded files into resources)
     public CurrentJob uploadData(@RequestParam("file") MultipartFile file) throws Exception {
         if (file == null) {
