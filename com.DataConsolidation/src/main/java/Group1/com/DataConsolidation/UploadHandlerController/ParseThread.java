@@ -36,6 +36,7 @@ class ParseThread implements Runnable{
                 XSSFWorkbook wbOut = new DataConsolidator(wbIn, progress).parse(tempOutbreakSource);
                 wbOut.write(outStream);
                 logger.info("Processing done");
+                outStream.close();
             } catch (IOException | WorkbookParseException e) {
                 e.printStackTrace();
             }
