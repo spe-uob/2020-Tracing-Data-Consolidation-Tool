@@ -33,7 +33,7 @@ public class UploadController {
             throw new RuntimeException("You must select the a file for uploading");
         }
         Progress.reset(); // make progress scope Request.
-        CurrentJob currentjob = GenerateRandomJob();
+        CurrentJob currentJob = GenerateRandomJob();
 
 
         InputStream inputStream = file.getInputStream();
@@ -41,13 +41,13 @@ public class UploadController {
         inputStream.read(buffer);
         inputStream.close();
 
-        File targetFile = new File(UPLOADED_FOLDER + "targetFile" + currentjob.getJobid()+ ".xlsx");
+        File targetFile = new File(UPLOADED_FOLDER + "targetFile" + currentJob.getJobId()+ ".xlsx");
         OutputStream outStream = new FileOutputStream(targetFile);
         outStream.write(buffer);
         outStream.close();
 
 
-        ParseThread parsethread = new ParseThread("parsethread", Progress, currentjob);
+        ParseThread parsethread = new ParseThread("parsethread", Progress, currentJob);
         parsethread.start();
 
 
@@ -63,13 +63,13 @@ public class UploadController {
         logger.info("size: " + size);
         MessageToShow = originalName + " size:" + size + " Content Type: "+ contentType;
         // Do processing with uploaded file data in Service layer
-        return currentjob;
+        return currentJob;
     }
 
     private CurrentJob GenerateRandomJob() throws NoSuchProviderException, NoSuchAlgorithmException {
         SecureRandom secureRandomGenerator = SecureRandom.getInstance("SHA1PRNG", "SUN");
-        int jobid = secureRandomGenerator.nextInt();
-        return new CurrentJob(jobid);
+        int jobId = secureRandomGenerator.nextInt();
+        return new CurrentJob(jobId);
     }
 
     @GetMapping("/upload")

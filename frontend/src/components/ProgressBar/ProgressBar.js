@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import styles from "./ProgressBar.module.css"
 import Filler from "./Filler"
-import { backendBaseUrl } from '../config';
+import { backendBaseUrl } from '../../config';
 
 class ProgressBar extends React.Component {
 
@@ -10,7 +10,7 @@ class ProgressBar extends React.Component {
         this.state = {
             percentage: 0
         };
-        this.eventSource = new EventSource(`${backendBaseUrl}/Progress`);
+        this.eventSource = new EventSource(`${backendBaseUrl}/progress`);
     }
 
     componentDidMount(){
@@ -29,6 +29,7 @@ class ProgressBar extends React.Component {
     }
 
     render() {
+        // TODO use props to pass percentage so can fetch data from outer component?
         return ( // TODO get rid of h4 surrounding progress bar
             <div>
                 <h4 className={styles.progressBar}>

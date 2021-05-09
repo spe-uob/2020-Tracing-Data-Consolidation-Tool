@@ -11,7 +11,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.*;
 import java.util.logging.Logger;
 
-class ParseThread implements Runnable{
+class ParseThread implements Runnable {
         private static String UPLOADED_FOLDER = "src/main/resources/UploadedFiles/";
         private static final Logger logger = Logger.getLogger(ParseThread.class.getName());
         Thread thread;
@@ -27,14 +27,18 @@ class ParseThread implements Runnable{
 
         @Override
         public void run() {
-            try (InputStream inStream = new FileInputStream(UPLOADED_FOLDER + "targetFile" + currentJob.getJobid() + ".xlsx")) {
-                var outFile = new File("src/main/resources/ProcessedFiles/processed" + currentJob.getJobid() + ".xlsx");
-                outFile.createNewFile();
-                OutputStream outStream = new FileOutputStream(outFile);
+            try (InputStream inStream = new FileInputStream(UPLOADED_FOLDER + "targetFile" + currentJob.getJobId() + ".xlsx")) {
+                var outFile = new File("src/main/resources/ProcessedFiles/processed" + currentJob.getJobId() + ".xlsx");
+                assert(!outFile.exists());
+
                 Workbook wbIn = WorkbookFactory.create(inStream);
                 Location tempOutbreakSource = new Location("08/548/4000"); // TODO: Hook this value up to the frontend
                 XSSFWorkbook wbOut = new DataConsolidator(wbIn, progress).parse(tempOutbreakSource);
+
+                outFile.createNewFile();
+                OutputStream outStream = new FileOutputStream(outFile);
                 wbOut.write(outStream);
+
                 logger.info("Processing done");
                 outStream.close();
             } catch (IOException | WorkbookParseException e) {

@@ -19,15 +19,15 @@ import java.security.spec.RSAOtherPrimeInfo;
 //Taking shortcuts. Need more work an refactoring
 @RestController
 @CrossOrigin("http://localhost:3000")
-public class Downloadcontroller {
-    @GetMapping(value = "/Processed.xlsx", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public byte[] getFile (@RequestParam("JobId") int JobId ) throws Exception {
-        InputStream inputStream = new FileInputStream("src/main/resources/ProcessedFiles/processed" + JobId + ".xlsx");
+public class DownloadController {
+    @GetMapping(value = "/processed", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    public byte[] getFile (@RequestParam("jobId") int jobId ) throws Exception {
+        InputStream inputStream = new FileInputStream("src/main/resources/ProcessedFiles/processed" + jobId + ".xlsx");
         byte[] buffer = new byte[inputStream.available()];
         inputStream.read(buffer);
         inputStream.close();
-        Path ProcessedFiletoDelete =  Paths.get("src/main/resources/ProcessedFiles/processed" + JobId + ".xlsx");
-        Path UploadedFiletoDelete  = Paths.get("src/main/resources/UploadedFiles/targetFile" + JobId + ".xlsx");
+        Path ProcessedFiletoDelete =  Paths.get("src/main/resources/ProcessedFiles/processed" + jobId + ".xlsx");
+        Path UploadedFiletoDelete  = Paths.get("src/main/resources/UploadedFiles/targetFile" + jobId + ".xlsx");
         try {
             Files.delete(ProcessedFiletoDelete);
             Files.delete(UploadedFiletoDelete);

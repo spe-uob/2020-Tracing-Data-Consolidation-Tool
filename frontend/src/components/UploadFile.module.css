@@ -1,0 +1,11 @@
+.main {
+
+}
+
+.header, .statusMessage {
+	font-weight: inherit;
+}
+
+.statusMessage {
+	height: 60px;
+}

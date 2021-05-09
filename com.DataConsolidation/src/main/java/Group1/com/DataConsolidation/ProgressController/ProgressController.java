@@ -18,10 +18,10 @@ public class ProgressController {
     }
 
     @CrossOrigin(value = "http://localhost:3000")
-    @GetMapping(value = "/Progress", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "/progress", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @ResponseBody
-    public Flux<Boolean> getProgress(@RequestParam(name = "JobId", defaultValue = "1") int JobId){
-        File file = new File("src/main/resources/ProcessedFiles/processed" + JobId + ".xlsx");
+    public Flux<Boolean> getProgress(@RequestParam(name = "jobId") int jobId){
+        File file = new File("src/main/resources/ProcessedFiles/processed" + jobId + ".xlsx");
         //System.out.println(file.exists());
         return Flux.interval(Duration.ofMillis(200)).map(it -> file.exists());
     }
