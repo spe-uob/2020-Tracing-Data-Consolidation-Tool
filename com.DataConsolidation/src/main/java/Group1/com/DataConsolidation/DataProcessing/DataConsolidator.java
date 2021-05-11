@@ -69,11 +69,11 @@ public class DataConsolidator {
         movesTo.addAll(aramsMoves.getSecond());
 
         Sheet scotlandFrom = inWb.getSheetAt(1);
-        SCOTEIDParser scoteidParserFrom = new SCOTEIDParser(scotlandFrom, progress, outbreakSource);
+        SCOTEIDParser scoteidParserFrom = new SCOTEIDParser(scotlandFrom, progress, outbreakSource, true);
         movesFrom.addAll(scoteidParserFrom.parse().getFirst());
 
         Sheet scotlandTo = inWb.getSheetAt(2);
-        SCOTEIDParser scoteidParserTo = new SCOTEIDParser(scotlandTo, progress, outbreakSource);
+        SCOTEIDParser scoteidParserTo = new SCOTEIDParser(scotlandTo, progress, outbreakSource, false);
         movesTo.addAll(scoteidParserTo.parse().getFirst());
 
         Sheet wales = inWb.getSheetAt(3);
@@ -93,9 +93,6 @@ public class DataConsolidator {
             .thenComparing((MoveRecord m) -> m.originatingSheet.split(":")[0], Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing((MoveRecord m) -> m.departDate, Comparator.nullsLast(Comparator.naturalOrder()))
         );
-
-//        deduplicate(movesFrom);
-//        deduplicate(movesTo);
 
         Sheet sheetFrom = outWb.createSheet("Moves Off");
         Sheet sheetTo = outWb.createSheet("Moves On");
@@ -172,6 +169,9 @@ public class DataConsolidator {
         // Print a data row
         Row row = sh.createRow(rowIndex);
         XSSFCellStyle style = evenRow ? this.evenRowStyle : this.oddRowStyle;
+        if (move.isWarning()) {
+            style = this.warningRowStyle;
+        }
 
         for (int i = 0; i < columns.size(); i++) {
             String cellValue = move.fieldValue(columns.get(i).field);
@@ -179,23 +179,28 @@ public class DataConsolidator {
             var cell = row.createCell(i);
             cell.setCellValue(cellValue);
             cell.setCellStyle(style);
-
-    //                if (move.get().isMissingData()) {
-    //                    cell.setCellStyle(this.warningRowStyle);
-            /*} else */
         }
 
         // Print all the animal IDs
         int numRowsCreated = 1;
+
+        if (!move.animalIDs.isEmpty()) {
+            Row r = sh.createRow(rowIndex + numRowsCreated);
+            var cell = r.createCell(1);
+            cell.setCellValue("Animal IDs:");
+            cell.setCellStyle(style);
+            numRowsCreated++;
+        }
+
         for (var animal : move.animalIDs) {
             if (animal.isEmpty())
                 continue;
 
             Row r = sh.createRow(rowIndex + numRowsCreated);
-            var cell = r.createCell(9);
+            var cell = r.createCell(1);
             cell.setCellValue(animal);
             cell.setCellStyle(style);
-            numRowsCreated += 1;
+            numRowsCreated++;
         }
 
         return numRowsCreated;

@@ -60,9 +60,8 @@ public class MoveRecord {
         return numUselessFields() == fieldList.length;
     }
 
-    public boolean isMissingData() throws WorkbookParseException {
-        // One due to originatingSheet always being empty
-        return numUselessFields() > 1;
+    public boolean isWarning() throws WorkbookParseException {
+        return locationFrom.number.isEmpty() || locationTo.number.isEmpty();
     }
 
     public boolean isFromInfected(Location outbreakSource) {

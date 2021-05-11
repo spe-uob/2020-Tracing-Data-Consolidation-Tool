@@ -16,7 +16,7 @@ Licensed under the MIT license (see `LICENSE.md`).
 
 ## Usage
 
-Install [docker](https://docs.docker.com/get-docker/).
+Install [docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/).
 
 ### Quick Start
 
@@ -27,6 +27,7 @@ docker-compose up -d
 
 The `-d` flag means 'detached' (runs in background).
 This will build the necessary containers if they are not present already (i.e. first time running). (To rebuild containers, see **Development** section below.)
+Note that building the containers for the first time may take 5-15 minutes to download and install the required components.
 
 Once finished with using the application, stop and remove all containers with:
 ```

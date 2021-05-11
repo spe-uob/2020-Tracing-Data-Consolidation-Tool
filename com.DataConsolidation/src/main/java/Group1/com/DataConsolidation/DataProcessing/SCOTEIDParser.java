@@ -6,8 +6,11 @@ import org.springframework.data.util.Pair;
 import java.util.*;
 
 public class SCOTEIDParser extends Parser {
-    public SCOTEIDParser(Sheet sheet, Progress progress, Location outbreakSource) {
+    private boolean fromData;
+
+    public SCOTEIDParser(Sheet sheet, Progress progress, Location outbreakSource, boolean fromData) {
         super(sheet, progress, outbreakSource, "scoteid");
+        this.fromData = fromData;
     }
 
     public Pair<ArrayList<MoveRecord>, ArrayList<MoveRecord>> parse() throws WorkbookParseException {
@@ -39,11 +42,13 @@ public class SCOTEIDParser extends Parser {
             move.animalCount = getCellData(row, "Sheep");
             move.locationFrom = new Location(getCellData(row, "Depart. CPH"));
             move.locationTo = new Location(getCellData(row, "Dest. CPH"));
+            move.activityTo = fromData ? getCellData(row, "Move") : null;
+            move.activityFrom = fromData ? null: getCellData(row, "Move");
             move.departCountry = move.locationFrom.getCountry();
             move.arriveCountry = move.locationTo.getCountry();
             var lotDate = getCellData(row, "Lot Date");
-            move.arriveDate = parseDate(lotDate);
-            move.departDate = parseDate(lotDate);
+            move.arriveDate = fromData ? null : parseDate(lotDate);
+            move.departDate = fromData ? parseDate(lotDate) : null;
 
             // TODO: Why?
             if (!move.isEmpty()) {

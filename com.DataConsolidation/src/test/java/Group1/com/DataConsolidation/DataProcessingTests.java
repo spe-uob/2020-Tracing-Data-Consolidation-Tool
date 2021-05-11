@@ -6,6 +6,7 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileOutputStream;
@@ -182,11 +183,11 @@ public class DataProcessingTests{
                 "Read Location",
                 "Dest. CPH"
         };
-        testWorksheet("scoteid", headingNames, sh -> new SCOTEIDParser(sh, dummyProgress(), outbreakSource));
+        testWorksheet("scoteid", headingNames, sh -> new SCOTEIDParser(sh, dummyProgress(), outbreakSource, true));
     }
 
     @Test
-//    @Disabled
+    @Disabled
     void parsesTestData() {
         XSSFWorkbook inWb = assertDoesNotThrow(() -> loadExcelFile("test_data_cleaned.xlsx"));
         DataConsolidator cs = assertDoesNotThrow(() -> new DataConsolidator(inWb, dummyProgress()));
