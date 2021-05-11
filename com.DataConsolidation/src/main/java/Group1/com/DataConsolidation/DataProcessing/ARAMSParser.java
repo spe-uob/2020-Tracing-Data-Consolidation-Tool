@@ -79,6 +79,12 @@ public class ARAMSParser extends Parser {
                 currentMove.arriveDate = parseDate(getCellData(row, "Arrival Date"));
                 currentMove.animalIDs.add(getCellData(row, "Animal No"));
                 bulkCount = 1;
+
+                if (currentMove.arriveDate == null) {
+                    currentMove.arriveDate = currentMove.departDate;
+                } else if (currentMove.departDate == null) {
+                    currentMove.departDate = currentMove.arriveDate;
+                }
             }
         }
 
