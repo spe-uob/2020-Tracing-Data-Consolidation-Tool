@@ -22,19 +22,16 @@ import java.security.spec.RSAOtherPrimeInfo;
 public class DownloadController {
     @GetMapping(value = "/processed", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public byte[] getFile (@RequestParam("jobId") int jobId ) throws Exception {
+
         InputStream inputStream = new FileInputStream("src/main/resources/ProcessedFiles/processed" + jobId + ".xlsx");
         byte[] buffer = new byte[inputStream.available()];
         inputStream.read(buffer);
         inputStream.close();
-        Path ProcessedFiletoDelete =  Paths.get("src/main/resources/ProcessedFiles/processed" + jobId + ".xlsx");
-        Path UploadedFiletoDelete  = Paths.get("src/main/resources/UploadedFiles/targetFile" + jobId + ".xlsx");
-        try {
-            Files.delete(ProcessedFiletoDelete);
-            Files.delete(UploadedFiletoDelete);
-        }
-        catch (Exception e){
-            throw new Exception(e);
-        }
+        File ProcessedFiletoDelete = new File("src/main/resources/ProcessedFiles/processed" + jobId + ".xlsx");
+        File UploadedFiletoDelete  = new File("src/main/resources/UploadedFiles/targetFile" + jobId + ".xlsx");
+        if(ProcessedFiletoDelete.exists()) ProcessedFiletoDelete.delete();
+        if(UploadedFiletoDelete.exists()) UploadedFiletoDelete.delete();
+
         return buffer;
     }
 

@@ -1,7 +1,13 @@
 package Group1.com.DataConsolidation.UploadHandlerController;
 
 
+import Group1.com.DataConsolidation.DataProcessing.DataConsolidator;
+import Group1.com.DataConsolidation.DataProcessing.Location;
 import Group1.com.DataConsolidation.DataProcessing.Progress;
+import Group1.com.DataConsolidation.DataProcessing.WorkbookParseException;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +29,6 @@ import java.util.logging.Logger;
 public class UploadController {
     private static String UPLOADED_FOLDER = "src/main/resources/UploadedFiles/";
     private static final Logger logger = Logger.getLogger(UploadController.class.getName());
-    private static String MessageToShow = "";
     @Autowired
     public Progress Progress;
     @ResponseBody
@@ -36,19 +41,31 @@ public class UploadController {
         CurrentJob currentJob = GenerateRandomJob();
 
 
-        InputStream inputStream = file.getInputStream();
-        byte[] buffer = new byte[inputStream.available()];
-        inputStream.read(buffer);
-        inputStream.close();
-
-        File targetFile = new File(UPLOADED_FOLDER + "targetFile" + currentJob.getJobId()+ ".xlsx");
-        OutputStream outStream = new FileOutputStream(targetFile);
-        outStream.write(buffer);
-        outStream.close();
+        InputStream inStream = file.getInputStream();
+        var outFile = new File("src/main/resources/ProcessedFiles/processed" + currentJob.getJobId() + ".xlsx");
+        outFile.createNewFile();
+        OutputStream outStream = new FileOutputStream(outFile);
 
 
-        ParseThread parsethread = new ParseThread("parsethread", Progress, currentJob);
-        parsethread.start();
+
+        try {
+            Workbook wbIn = WorkbookFactory.create(inStream);
+            Location tempOutbreakSource = new Location("08/548/4000"); // TODO: Hook this value up to the frontend
+            XSSFWorkbook wbOut = new DataConsolidator(wbIn,Progress).parse(tempOutbreakSource);
+            wbOut.write(outStream);
+            logger.info("Processing done");
+            outStream.close();
+            inStream.close();
+        } catch (IOException | WorkbookParseException e) {
+            outStream.close();
+            inStream.close();
+            DeleteCorruptedFiles(currentJob);
+            currentJob.setError(e.toString());
+            e.printStackTrace();
+            System.out.println("error has occured");
+            System.out.println(e);
+        }
+
 
 
         //Logging information into the console. (just for Debugging)
@@ -56,27 +73,26 @@ public class UploadController {
         String name = file.getName();
         String contentType = file.getContentType();
         long size = file.getSize();
-        logger.info("inputStream: " + inputStream);
+        logger.info("inputStream: " + inStream);
         logger.info("originalName: " + originalName);
         logger.info("name: " + name);
         logger.info("contentType: " + contentType);
         logger.info("size: " + size);
-        MessageToShow = originalName + " size:" + size + " Content Type: "+ contentType;
         // Do processing with uploaded file data in Service layer
         return currentJob;
     }
 
-    private CurrentJob GenerateRandomJob() throws NoSuchProviderException, NoSuchAlgorithmException {
-        SecureRandom secureRandomGenerator = SecureRandom.getInstance("SHA1PRNG", "SUN");
-        int jobId = secureRandomGenerator.nextInt();
-        return new CurrentJob(jobId);
+    private void DeleteCorruptedFiles(CurrentJob currentjob) {
+        File ProcessedFiletoDelete = new File("src/main/resources/ProcessedFiles/processed" + currentjob.getJobId() + ".xlsx");
+        if(ProcessedFiletoDelete.exists()) System.out.println(ProcessedFiletoDelete.delete());
     }
 
-    @GetMapping("/upload")
-    @ResponseBody
-    public String showdata(){
-        return MessageToShow;
+    private CurrentJob GenerateRandomJob() throws NoSuchProviderException, NoSuchAlgorithmException {
+        SecureRandom secureRandomGenerator = SecureRandom.getInstance("SHA1PRNG", "SUN");
+        int jobId = Math.abs(secureRandomGenerator.nextInt());
+        return new CurrentJob(jobId,"");
     }
+
 
 
 }
