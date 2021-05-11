@@ -34,9 +34,7 @@ public class UploadController {
     @ResponseBody
     @PostMapping("/upload") // Handle Post Request sent by the React Client (save Uploaded files into resources)
     public CurrentJob uploadData(@RequestParam("file") MultipartFile file, @RequestParam("OutbreakSource") String outbreakSource) throws Exception {
-        if (file == null) {
-            throw new RuntimeException("You must select the a file for uploading");
-        }
+
         Progress.reset(); // make progress scope Request.
         CurrentJob currentJob = GenerateRandomJob();
 
