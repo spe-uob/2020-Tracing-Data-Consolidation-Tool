@@ -4,6 +4,7 @@ import buttonStyles from './Button.module.css';
 import ProgressBar from './ProgressBar/ProgressBar';
 import { backendBaseUrl } from '../config';
 
+
 class DownloadFile extends React.Component {
 	constructor(props) {
 		super(props);
@@ -33,11 +34,15 @@ class DownloadFile extends React.Component {
 
 	updateProgress(data) {
 		if (typeof data !== "boolean") console.error("progress update is not boolean");
+		console.log(data)
 
 		if (data) {
 			this.props.markFileProcessed();
 			this.state.eventSource.close(); // TODO how upload second file
-			this.setState({ eventSource: null });
+			this.setState({ 
+				eventSource: null,
+				showbar: false
+			 });
 		}
 	}
 
@@ -62,6 +67,7 @@ class DownloadFile extends React.Component {
 				</div>
 				{showbar ? <ProgressBar onComplete={this.onProgressComplete}></ProgressBar> : null}
 				<h4 className={styles.statusMessage}>{this.state.status}</h4>
+				
 			</div>
 		);
 	}

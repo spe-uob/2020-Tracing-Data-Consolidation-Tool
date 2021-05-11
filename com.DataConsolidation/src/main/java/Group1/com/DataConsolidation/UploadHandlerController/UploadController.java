@@ -33,7 +33,7 @@ public class UploadController {
     public Progress Progress;
     @ResponseBody
     @PostMapping("/upload") // Handle Post Request sent by the React Client (save Uploaded files into resources)
-    public CurrentJob uploadData(@RequestParam("file") MultipartFile file) throws Exception {
+    public CurrentJob uploadData(@RequestParam("file") MultipartFile file, @RequestParam("OutbreakSource") String outbreakSource) throws Exception {
         if (file == null) {
             throw new RuntimeException("You must select the a file for uploading");
         }
@@ -50,7 +50,8 @@ public class UploadController {
 
         try {
             Workbook wbIn = WorkbookFactory.create(inStream);
-            Location tempOutbreakSource = new Location("08/548/4000"); // TODO: Hook this value up to the frontend
+            //Location tempOutbreakSource = new Location("08/540/4000"); // TODO: Hook this value up to the frontend
+            Location tempOutbreakSource = new Location(outbreakSource);
             XSSFWorkbook wbOut = new DataConsolidator(wbIn,Progress).parse(tempOutbreakSource);
             wbOut.write(outStream);
             logger.info("Processing done");
