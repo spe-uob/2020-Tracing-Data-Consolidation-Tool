@@ -44,8 +44,6 @@ public class UploadController {
         outFile.createNewFile();
         OutputStream outStream = new FileOutputStream(outFile);
 
-
-
         try {
             Workbook wbIn = WorkbookFactory.create(inStream);
             //Location tempOutbreakSource = new Location("08/540/4000"); // TODO: Hook this value up to the frontend

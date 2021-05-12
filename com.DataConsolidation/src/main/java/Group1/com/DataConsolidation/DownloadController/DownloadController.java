@@ -22,17 +22,23 @@ import java.security.spec.RSAOtherPrimeInfo;
 public class DownloadController {
     @GetMapping(value = "/processed", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public byte[] getFile (@RequestParam("jobId") int jobId ) throws Exception {
+        byte[] error = new byte[0];
 
-        InputStream inputStream = new FileInputStream("src/main/resources/ProcessedFiles/processed" + jobId + ".xlsx");
-        byte[] buffer = new byte[inputStream.available()];
-        inputStream.read(buffer);
-        inputStream.close();
-        File ProcessedFiletoDelete = new File("src/main/resources/ProcessedFiles/processed" + jobId + ".xlsx");
-        File UploadedFiletoDelete  = new File("src/main/resources/UploadedFiles/targetFile" + jobId + ".xlsx");
-        if(ProcessedFiletoDelete.exists()) ProcessedFiletoDelete.delete();
-        if(UploadedFiletoDelete.exists()) UploadedFiletoDelete.delete();
+        try(InputStream inputStream = new FileInputStream("src/main/resources/ProcessedFiles/processed" + jobId + ".xlsx")){
+            byte[] buffer = new byte[inputStream.available()];
+            inputStream.read(buffer);
+            inputStream.close();
+            File ProcessedFiletoDelete = new File("src/main/resources/ProcessedFiles/processed" + jobId + ".xlsx");
+            File UploadedFiletoDelete  = new File("src/main/resources/UploadedFiles/targetFile" + jobId + ".xlsx");
+            if(ProcessedFiletoDelete.exists()) ProcessedFiletoDelete.delete();
+            if(UploadedFiletoDelete.exists()) UploadedFiletoDelete.delete();
+            return buffer;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
 
-        return buffer;
+        return error;
     }
 
 

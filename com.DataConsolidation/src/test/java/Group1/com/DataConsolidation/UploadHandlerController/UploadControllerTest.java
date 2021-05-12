@@ -42,7 +42,7 @@ class UploadControllerTest {
 
     @Test
     void uploadData() throws Exception {
-        File targetFile = new File(TEST_FILES_PATH + "arams_invalid.xlsx");
+        File targetFile = new File(TEST_FILES_PATH + "BlankDoc.xlsx");
         InputStream inStream = new FileInputStream(targetFile);
         byte[] content = new byte[inStream.available()];
         inStream.read(content);
@@ -55,13 +55,11 @@ class UploadControllerTest {
 
 
         MvcResult result = mvc.perform(MockMvcRequestBuilders.multipart("/upload")
-                .file(mockMultipartFile).param("OutbreakSource", "00/000/0000")).andExpect(status().is(200)).andReturn();
-        String responseJson = result.getResponse().getContentAsString();
+                .file(mockMultipartFile).param("OutbreakSource", "")).andExpect(status().is(200)).andReturn();
+        //       String responseJson = result.getResponse().getContentAsString();
 //        String id = responseJson.substring(9,responseJson.lastIndexOf("}"));
 //
 //        System.out.println(id);
-
-
     }
 
 
