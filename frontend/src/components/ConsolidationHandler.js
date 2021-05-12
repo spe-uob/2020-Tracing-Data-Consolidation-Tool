@@ -1,7 +1,6 @@
 import React from 'react';
 import styles from './ConsolidationHandler.module.css';
 import UploadFile from './UploadFile';
-import DownloadFile from './DownloadFile';
 
 class ConsolidationHandler extends React.Component {
 	constructor(props) {
@@ -24,10 +23,6 @@ class ConsolidationHandler extends React.Component {
 			<div className={this.props.className}>
 				<div className={styles.group}>
 					<UploadFile markUploaded={this.markFileUploaded.bind(this)}/>
-				</div>
-				<div className={styles.group}>
-					<DownloadFile jobId={this.state.jobId} fileProcessed={this.state.fileProcessed}
-						markFileProcessed={() => this.setState({ fileProcessed: true })} />
 				</div>
 			</div>
 		);

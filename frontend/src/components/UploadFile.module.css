@@ -6,6 +6,10 @@
 	font-weight: inherit;
 }
 
+.outbreaktxt{
+	display: block;
+}
+
 .statusMessage {
 	height: 20px;
 }
