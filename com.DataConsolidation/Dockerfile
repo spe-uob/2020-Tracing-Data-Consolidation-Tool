@@ -5,6 +5,9 @@ WORKDIR /usr/app
 COPY src ./src
 COPY pom.xml .
 
+RUN mkdir -p src/main/resources/UploadedFiles/
+RUN mkdir -p src/main/resources/ProcessedFiles/
+
 RUN mvn clean package
 
 
