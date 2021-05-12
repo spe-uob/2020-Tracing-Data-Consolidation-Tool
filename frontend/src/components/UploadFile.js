@@ -117,7 +117,7 @@ class UploadFile extends React.Component {
 		return (
 			<div className={styles.main}>
 				<h1 className={styles.header}>Excel Files to Upload</h1>
-				<div className={styles.header}>Out break Source</div>
+				<div className={styles.header}>Out break Source in FSA format</div>
 				<input className = {styles.outbreaktxt} onChange ={this.onValueChange} type = "value"/>
 				<input onChange={this.onFileChange} type="file" />
 				<button className={buttonStyles.button} disabled={!this.state.file} onClick={this.uploadFileData}>Upload</button>
