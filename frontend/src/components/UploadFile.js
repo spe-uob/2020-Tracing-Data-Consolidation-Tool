@@ -63,7 +63,7 @@ class UploadFile extends React.Component {
 	}
 	onValueChange = (event) => {
 		this.setState({
-			OutbreakSource: event.target.value
+			outbreakSource: event.target.value
 		})
 	}
 
