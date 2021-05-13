@@ -48,6 +48,8 @@ class UploadControllerTest {
         inStream.read(content);
         inStream.close();
 
+        File file = new File("src/main/resources/ProcessedFiles");
+        file.mkdir();
         //RequestBuilder request = MockMvcRequestBuilders.post("/upload");
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file",content);
         //MvcResult result = mvc.perform(request).andReturn();
@@ -60,6 +62,7 @@ class UploadControllerTest {
 //        String id = responseJson.substring(9,responseJson.lastIndexOf("}"));
 //
 //        System.out.println(id);
+        file.delete();
     }
 
 
