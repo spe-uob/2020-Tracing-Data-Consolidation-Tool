@@ -1,8 +1,8 @@
 import React from 'react';
 import styles from './UploadFile.module.css';
-import buttonStyles from './Button.module.css';
 import { backendBaseUrl } from '../config';
-import loadinggif from '../images/Spinner-1s-200px.gif';
+import loadingGif from '../images/loading-small-clockwise.gif';
+import { Upload as UploadIcon } from 'react-feather';
 
 class UploadFile extends React.Component {
 
@@ -110,24 +110,32 @@ class UploadFile extends React.Component {
 	}
 
 	render() {
-		const {loading} = this.state;
 		return (
-			<div className={styles.main}>
-				<h1 className={styles.header}>Files to Consolidate</h1>
-				<table>
-					<tr>
-						<td><div className={styles.header}>Outbreak Source (CPH):</div></td>
-						<td className={styles.inputContainer}><input onChange={this.onValueChange} type="value" /></td>
-					</tr>
-					<tr>
-						<td><div className={styles.header}>Excel File:</div></td>
-						<td className={styles.inputContainer}><input onChange={this.onFileChange} type="file" /></td>
-					</tr>
-				</table>
-				<button className={buttonStyles.button} disabled={!this.state.file} onClick={this.uploadFileData}>Upload</button>
-				<h4 className={styles.statusMessage}>{this.state.status}</h4>
-				<div className={styles.loadingImageContainer}>{loading ? <img className={styles.loadingImage} src={loadinggif}/> : null}</div>
-				<h4 className={styles.statusMessage}>{this.state.ConsolidateError}</h4>
+			<div>
+				<div className={styles.uploadContainer}>
+					<table>
+						<tbody>
+							<tr>
+								<td><div className={styles.header}>Outbreak Source (CPH):</div></td>
+								<td className={styles.inputContainer}><input onChange={this.onValueChange} type="value" /></td>
+							</tr>
+							<tr>
+								<td><div className={styles.header}>Excel File:</div></td>
+								<td className={styles.inputContainer}><input onChange={this.onFileChange} type="file" /></td>
+							</tr>
+						</tbody>
+					</table>
+					<button title="Upload" className={styles.button} disabled={!this.state.file} onClick={this.uploadFileData}>
+						<UploadIcon className={styles.uploadIcon} />
+					</button>
+				</div>
+				<div className={styles.progressContainer}>
+					<div className={styles.statusMessage}>{this.state.status}</div>
+					<div clasName={styles.progressImageContainer}>
+						{this.state.loading ? <img className={styles.loadingImage} src={loadingGif} alt="loading..." /> : null}
+					</div>
+				</div>
+				<div className={styles.statusMessage}>{this.state.ConsolidateError}</div>
 			</div>
 		);
 	}

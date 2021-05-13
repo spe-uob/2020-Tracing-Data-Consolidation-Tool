@@ -1,5 +1,8 @@
+.groupContainer {
+	display: flex;
+	justify-content: center;
+}
+
 .group {
 	position: relative;
-	
-	
 }

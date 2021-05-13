@@ -26,8 +26,3 @@
 	align-items: stretch;
 	padding-bottom: 150px;
 }
-
-.groupContainer {
-	display: flex;
-	justify-content: space-evenly;
-}

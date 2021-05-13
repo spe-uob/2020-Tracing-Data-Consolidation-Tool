@@ -1,27 +1,96 @@
-.main {
-
-}
-
 .header, .statusMessage {
 	font-weight: inherit;
+}
+
+.uploadContainer {
+	display: flex;
+	justify-content: center;
+}
+
+.uploadContainer > table {
+	height: 60px;
 }
 
 .inputContainer {
 	padding-left: 20px;
 }
 
+.button {
+	width: 60px;
+	height: 60px;
+
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 12px;
+	font-family: inherit;
+
+	border: 1px #222 solid;
+	/*background-color: #222;*/
+	background-color: transparent;
+	/*color: white;*/
+	color: #222;
+	cursor: pointer;
+
+	border-radius: 4px;
+	padding-top: 6px;
+	padding-bottom: 6px;
+	padding-left: 10px;
+	padding-right: 10px;
+
+	transition: background-color 0.1s ease, color 0.1s ease-in;
+}
+
+.button:hover {
+	/*color: #222;*/
+	color: white;
+	/*background-color: white;*/
+	background-color: #222;
+
+	transition: background-color 0.1s ease, color 0.1s ease-in;
+}
+
+.button.inactive {
+	border-color: grey;
+	color: grey;
+}
+
+.button.inactive:hover {
+	color: grey;
+	background-color: white;
+
+	transition: none;
+	cursor: default;
+}
+
+.uploadIcon {
+	width: 20px;
+}
+
+.progressContainer {
+	margin-top: 50px;
+	display: flex;
+}
+
+.progressContainer {
+	display: flex;
+	justify-content: space-between;
+}
+
 .statusMessage {
 	height: 20px;
 }
 
-.loadingImage {
+.loadingImageContainer {
+	display: flex;
+	justify-content: center;
 	align-content: center;
-	position: relative;
+	width: 50px;
+	height: 50px;
 }
 
-.loadingImageContainer {
-	padding-left: 40%;
-	padding-top: 0%;
-	padding-bottom: 0%;
-    width: 40px;
+.loadingImage {
+	align-content: center;
+	width: 20px;
 }
+

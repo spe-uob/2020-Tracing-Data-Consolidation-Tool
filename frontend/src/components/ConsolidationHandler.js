@@ -20,7 +20,7 @@ class ConsolidationHandler extends React.Component {
 
 	render() {
 		return (
-			<div className={this.props.className}>
+			<div className={styles.groupContainer}>
 				<div className={styles.group}>
 					<UploadFile markUploaded={this.markFileUploaded.bind(this)}/>
 				</div>
