@@ -6,12 +6,5 @@ orbs:
 workflows:
   maven_test:
     jobs:
-
-      - mkdir:
-          name: "Make directories for backend processing"
-          command: |
-            mkdir -p com.DataConsolidation/src/main/resources/ProcessedFiles/
-            mkdir -p com.DataConsolidation/src/main/resources/UploadedFiles/
-
       - maven/test: # checkout, build, test, and upload test results
           app_src_directory: com.DataConsolidation
