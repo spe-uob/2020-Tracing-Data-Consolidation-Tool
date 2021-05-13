@@ -9,11 +9,12 @@ class UploadFile extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			OutbreakSource: '',
+			outbreakSource: '',
 			file: '',
-			status: '',
-			ConsolidateError:'',
+			statusMessage: '',
+			error: false,
 			loading: false,
+			errorDetails: '', // error encountered during consolidation
 		};
 	}
 
@@ -57,59 +58,68 @@ class UploadFile extends React.Component {
 		}).catch(error => console.log(error));
 	}
 
-	onFileChange = (event) => {
+	onFileChange = event => {
 		this.setState({
 			file: event.target.files[0],
 		});
 	}
 
-	onValueChange = (event) => {
+	onValueChange = event => {
 		this.setState({
 			outbreakSource: event.target.value
 		});
 	}
 
-	uploadFileData = (event) => {
+	uploadFileData = event => {
 		event.preventDefault();
+
 		this.setState({
-			status: 'Please wait while data is being processed',
+			statusMessage: 'Please wait while data is being processed',
+			errorDetails: '',
+			error: false,
 			loading: true,
 		});
 
-		let data = new FormData();
-		data.append('file', this.state.file);
-		data.append('OutbreakSource', this.state.outbreakSource)
+		let requestBody = new FormData();
+		requestBody.append('file', this.state.file);
+		requestBody.append('outbreakSource', this.state.outbreakSource);
 
 		fetch(`${backendBaseUrl}/upload`, {
 			method: 'POST',
-			body: data
-		}).then(response => response.json()).then(jsonData => {
-			console.log(jsonData.jobId); // DEBUG
-			console.log(jsonData.error)
-			this.props.markUploaded(jsonData.jobId);
-			if (jsonData.error === "") {
-				this.onSuccessfulConsolidation(jsonData.jobId)
+			body: requestBody
+		}).then(response => response.json()).then(data => {
+			console.log(data.error) // DEBUG
+			this.props.markUploaded(data.jobId);
+			if (data.error === "") {
+				this.onSuccessfulConsolidation(data.jobId)
 				this.setState({
-					status:"File successfully Consolidated",
+					statusMessage: 'File successfully consolidated',
+					errorDetails: '',
+					error: false,
 					loading: false,
 				});
 			} else {
 				this.setState({
-					status: "File sucessfully uploaded but an error has occurred during consolidation",
-					//ConsolidateError: jsonData.error,
+					statusMessage: 'File sucessfully uploaded but encountered error during consolidation',
+					errorDetails: data.error,
+					error: true,
 					loading: false,
 				});
 			}
 		}).catch(err => {
 			console.log(err); // DEBUG
 			this.setState({
-				status: "File failed to upload" ,
+				statusMessage: 'File failed to upload',
+				errorDetails: '',
+				error: true,
 				loading: false,
 			});
 		});
 	}
 
 	render() {
+		const canUpload = this.state.file && /^[0-9]{2}\/[0-9]{3}\/[0-9]{4}$/.test(this.state.outbreakSource);
+
 		return (
 			<div>
 				<div className={styles.uploadContainer}>
@@ -117,25 +127,31 @@ class UploadFile extends React.Component {
 						<tbody>
 							<tr>
 								<td><div className={styles.header}>Outbreak Source (CPH):</div></td>
-								<td className={styles.inputContainer}><input onChange={this.onValueChange} type="value" /></td>
+								<td className={styles.inputContainer}>
+									<input onChange={this.onValueChange} type="value" placeholder="00/000/0000" />
+								</td>
 							</tr>
 							<tr>
 								<td><div className={styles.header}>Excel File:</div></td>
-								<td className={styles.inputContainer}><input onChange={this.onFileChange} type="file" /></td>
+								<td className={styles.inputContainer}>
+									<input onChange={this.onFileChange} type="file" />
+								</td>
 							</tr>
 						</tbody>
 					</table>
-					<button title="Upload" className={styles.button} disabled={!this.state.file} onClick={this.uploadFileData}>
+					<button className={`${styles.button} ${!canUpload ? styles.inactive : ''}`}
+						title="Upload" disabled={!canUpload} onClick={this.uploadFileData}>
+
 						<UploadIcon className={styles.uploadIcon} />
 					</button>
 				</div>
 				<div className={styles.progressContainer}>
-					<div className={styles.statusMessage}>{this.state.status}</div>
-					<div clasName={styles.progressImageContainer}>
+					<div className={`${styles.statusMessage} ${this.state.error ? styles.error : ''}`}>{this.state.statusMessage}</div>
+					<div className={styles.progressImageContainer}>
 						{this.state.loading ? <img className={styles.loadingImage} src={loadingGif} alt="loading..." /> : null}
 					</div>
 				</div>
-				<div className={styles.statusMessage}>{this.state.ConsolidateError}</div>
+				<div className={`${styles.details} ${styles.error}`}>{this.state.errorDetails}</div>
 			</div>
 		);
 	}

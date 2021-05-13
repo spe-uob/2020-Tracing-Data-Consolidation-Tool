@@ -1,7 +1,3 @@
-.header, .statusMessage {
-	font-weight: inherit;
-}
-
 .uploadContainer {
 	display: flex;
 	justify-content: center;
@@ -9,10 +5,20 @@
 
 .uploadContainer > table {
 	height: 60px;
+	padding-right: 20px;
 }
 
 .inputContainer {
 	padding-left: 20px;
+}
+
+.inputContainer > input[type=value] {
+	width: calc(100% - 6px);
+}
+
+.inputContainer > input[type=file] {
+	width: 240px;
+	text-overflow: ellipsis;
 }
 
 .button {
@@ -26,9 +32,7 @@
 	font-family: inherit;
 
 	border: 1px #222 solid;
-	/*background-color: #222;*/
 	background-color: transparent;
-	/*color: white;*/
 	color: #222;
 	cursor: pointer;
 
@@ -42,21 +46,19 @@
 }
 
 .button:hover {
-	/*color: #222;*/
 	color: white;
-	/*background-color: white;*/
 	background-color: #222;
 
 	transition: background-color 0.1s ease, color 0.1s ease-in;
 }
 
 .button.inactive {
-	border-color: grey;
-	color: grey;
+	border-color: #a6a2a2;
+	color: #666262;
 }
 
 .button.inactive:hover {
-	color: grey;
+	color: #666262;
 	background-color: white;
 
 	transition: none;
@@ -75,10 +77,20 @@
 .progressContainer {
 	display: flex;
 	justify-content: space-between;
+	margin-bottom: 20px;
 }
 
-.statusMessage {
+.statusMessage, .details {
 	height: 20px;
+	max-width: 500px;
+}
+
+.statusMessage.error, .details.error {
+	color: #db0b31;
+}
+
+.details {
+	font-size: 12px;
 }
 
 .loadingImageContainer {
@@ -93,4 +105,3 @@
 	align-content: center;
 	width: 20px;
 }
-

@@ -55,7 +55,7 @@ class UploadControllerTest {
 
 
         MvcResult result = mvc.perform(MockMvcRequestBuilders.multipart("/upload")
-                .file(mockMultipartFile).param("OutbreakSource", "")).andExpect(status().is(200)).andReturn();
+                .file(mockMultipartFile).param("outbreakSource", "")).andExpect(status().is(200)).andReturn();
         //       String responseJson = result.getResponse().getContentAsString();
 //        String id = responseJson.substring(9,responseJson.lastIndexOf("}"));
 //

@@ -30,25 +30,26 @@ public class UploadController {
     private static String UPLOADED_FOLDER = "src/main/resources/UploadedFiles/";
     private static final Logger logger = Logger.getLogger(UploadController.class.getName());
     @Autowired
-    public Progress Progress;
+    public Progress progress; // TODO why is this public? Could we not use this for sending progress udpates?
     @ResponseBody
     @PostMapping("/upload") // Handle Post Request sent by the React Client (save Uploaded files into resources)
-    public CurrentJob uploadData(@RequestParam("file") MultipartFile file, @RequestParam("OutbreakSource") String outbreakSource) throws Exception {
+    public CurrentJob uploadData(@RequestParam("file") MultipartFile file, @RequestParam("outbreakSource") String outbreakSource) throws Exception {
 
-        Progress.reset(); // make progress scope Request.
+        progress.reset(); // make progress scope Request.
         CurrentJob currentJob = GenerateRandomJob();
 
 
         InputStream inStream = file.getInputStream();
         var outFile = new File("src/main/resources/ProcessedFiles/processed" + currentJob.getJobId() + ".xlsx");
-        outFile.createNewFile();
+        // TODO create the necessary folders if not already present?
+        outFile.createNewFile(); // TODO creating a file immediately could cause problems when it comes to checking progress
         OutputStream outStream = new FileOutputStream(outFile);
 
         try {
             Workbook wbIn = WorkbookFactory.create(inStream);
-            //Location tempOutbreakSource = new Location("08/540/4000"); // TODO: Hook this value up to the frontend
+            // TODO check outbreakSource is not an empty string?
             Location tempOutbreakSource = new Location(outbreakSource);
-            XSSFWorkbook wbOut = new DataConsolidator(wbIn,Progress).parse(tempOutbreakSource);
+            XSSFWorkbook wbOut = new DataConsolidator(wbIn, progress).parse(tempOutbreakSource);
             wbOut.write(outStream);
             logger.info("Processing done");
             outStream.close();
@@ -57,12 +58,12 @@ public class UploadController {
             outStream.close();
             inStream.close();
             DeleteCorruptedFiles(currentJob);
-            currentJob.setError(e.toString());
+            // TODO do we really want to print IOException errors? Those would be bugs on our end, not issues for the user to fix
+            currentJob.setError(e.getMessage());
             e.printStackTrace();
             System.out.println("error has occured");
             System.out.println(e);
         }
-
 
 
         //Logging information into the console. (just for Debugging)
@@ -89,7 +90,4 @@ public class UploadController {
         int jobId = Math.abs(secureRandomGenerator.nextInt());
         return new CurrentJob(jobId,"");
     }
-
-
-
 }
