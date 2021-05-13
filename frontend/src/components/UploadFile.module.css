@@ -6,22 +6,22 @@
 	font-weight: inherit;
 }
 
-.outbreaktxt{
-	display: block;
+.inputContainer {
+	padding-left: 20px;
 }
 
 .statusMessage {
 	height: 20px;
 }
 
-.loadingimg {
+.loadingImage {
 	align-content: center;
 	position: relative;
 }
 
-.loadingimg1{
+.loadingImageContainer {
 	padding-left: 40%;
 	padding-top: 0%;
 	padding-bottom: 0%;
-    width: 40px;	
+    width: 40px;
 }

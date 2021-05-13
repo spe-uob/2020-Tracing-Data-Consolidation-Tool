@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './UploadFile.module.css';
 import buttonStyles from './Button.module.css';
 import { backendBaseUrl } from '../config';
-import loadinggif from '../Spinner-1s-200px.gif';
+import loadinggif from '../images/Spinner-1s-200px.gif';
 
 class UploadFile extends React.Component {
 
@@ -16,7 +16,8 @@ class UploadFile extends React.Component {
 			loading: false,
 		};
 	}
-	downloadblob(blob, filename){
+
+	downloadblob(blob, filename) {
 		const url = URL.createObjectURL(blob);
 		// Create a new anchor element
 		const a = document.createElement('a');
@@ -28,10 +29,10 @@ class UploadFile extends React.Component {
 		// Click handler that releases the object URL after the element has been clicked
 		// This is required for one-off downloads of the blob content
 		const clickHandler = () => {
-		  setTimeout(() => {
-			URL.revokeObjectURL(url);
-			a.removeEventListener('click', clickHandler);
-		  }, 150);
+			setTimeout(() => {
+				URL.revokeObjectURL(url);
+				a.removeEventListener('click', clickHandler);
+			}, 150);
 		};
 		// Add the click event listener on the anchor element
 		// Comment out this line if you don't want a one-off download of the blob content
@@ -47,13 +48,13 @@ class UploadFile extends React.Component {
 		return a;
 	}
 
-	onSuccessfulConsolidation (jobId){
+	onSuccessfulConsolidation (jobId) {
 		fetch(`${backendBaseUrl}/processed?jobId=${jobId}`, {
 			method: 'GET'
 		}).then(response => response.blob())
 		.then(blob => {
 			this.downloadblob(blob, "processed.xlsx");
-		}).catch(error => console.log(error))
+		}).catch(error => console.log(error));
 	}
 
 	onFileChange = (event) => {
@@ -61,10 +62,11 @@ class UploadFile extends React.Component {
 			file: event.target.files[0],
 		});
 	}
+
 	onValueChange = (event) => {
 		this.setState({
 			outbreakSource: event.target.value
-		})
+		});
 	}
 
 	uploadFileData = (event) => {
@@ -72,7 +74,7 @@ class UploadFile extends React.Component {
 		this.setState({
 			status: 'Please wait while data is being processed',
 			loading: true,
-	});
+		});
 
 		let data = new FormData();
 		data.append('file', this.state.file);
@@ -81,52 +83,53 @@ class UploadFile extends React.Component {
 		fetch(`${backendBaseUrl}/upload`, {
 			method: 'POST',
 			body: data
-		}).then((response) => response.json()
-		).then((jsonData)=> {
+		}).then(response => response.json()).then(jsonData => {
 			console.log(jsonData.jobId); // DEBUG
 			console.log(jsonData.error)
 			this.props.markUploaded(jsonData.jobId);
-			if (jsonData.error === ""){
+			if (jsonData.error === "") {
 				this.onSuccessfulConsolidation(jsonData.jobId)
 				this.setState({
 					status:"File successfully Consolidated",
 					loading: false,
-		    });
-		    }
-			else{
+				});
+			} else {
 				this.setState({
 					status: "File sucessfully uploaded but an error has occurred during consolidation",
 					//ConsolidateError: jsonData.error,
 					loading: false,
-
-				})
+				});
 			}
-			
 		}).catch(err => {
 			console.log(err); // DEBUG
-			this.setState({ 
+			this.setState({
 				status: "File failed to upload" ,
 				loading: false,
+			});
 		});
-		});
-
 	}
 
 	render() {
 		const {loading} = this.state;
 		return (
 			<div className={styles.main}>
-				<h1 className={styles.header}>Excel Files to Upload</h1>
-				<div className={styles.header}>Out break Source in FSA format</div>
-				<input className = {styles.outbreaktxt} onChange ={this.onValueChange} type = "value"/>
-				<input onChange={this.onFileChange} type="file" />
+				<h1 className={styles.header}>Files to Consolidate</h1>
+				<table>
+					<tr>
+						<td><div className={styles.header}>Outbreak Source (CPH):</div></td>
+						<td className={styles.inputContainer}><input onChange={this.onValueChange} type="value" /></td>
+					</tr>
+					<tr>
+						<td><div className={styles.header}>Excel File:</div></td>
+						<td className={styles.inputContainer}><input onChange={this.onFileChange} type="file" /></td>
+					</tr>
+				</table>
 				<button className={buttonStyles.button} disabled={!this.state.file} onClick={this.uploadFileData}>Upload</button>
 				<h4 className={styles.statusMessage}>{this.state.status}</h4>
-				<div className = {styles.loadingimg}>{loading ? <img  className = {styles.loadingimg1} src = {loadinggif}/>:null}</div>
+				<div className={styles.loadingImageContainer}>{loading ? <img className={styles.loadingImage} src={loadinggif}/> : null}</div>
 				<h4 className={styles.statusMessage}>{this.state.ConsolidateError}</h4>
-				
 			</div>
-		)
+		);
 	}
 }
 
