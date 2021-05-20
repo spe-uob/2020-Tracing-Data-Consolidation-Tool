@@ -1,4 +1,4 @@
-package Group1.com.DataConsolidation.UploadHandlerController;
+package Group1.com.DataConsolidation.Controller;
 
 public class CurrentJob {
     private int jobId;

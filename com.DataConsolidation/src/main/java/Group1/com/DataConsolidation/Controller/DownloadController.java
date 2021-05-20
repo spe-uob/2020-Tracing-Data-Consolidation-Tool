@@ -1,4 +1,4 @@
-package Group1.com.DataConsolidation.DownloadController;
+package Group1.com.DataConsolidation.Controller;
 
 
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
@@ -37,7 +37,6 @@ public class DownloadController {
         catch (Exception e){
             e.printStackTrace();
         }
-
         return error;
     }
 

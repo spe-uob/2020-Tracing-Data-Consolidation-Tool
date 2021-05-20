@@ -1,4 +1,4 @@
-package Group1.com.DataConsolidation.ProgressController;
+package Group1.com.DataConsolidation.Controller;
 
 import Group1.com.DataConsolidation.DataProcessing.Progress;
 import org.springframework.beans.factory.annotation.Autowired;
